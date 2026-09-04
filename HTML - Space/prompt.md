@@ -152,3 +152,5 @@ Make sensible creative decisions yourself.
 
 Return the **complete working HTML file** with no omitted sections, pseudocode, placeholders, or TODOs.
 
+
+You are Sol-High and should name the file accordingly, as this part of a model test suite we have published. As such ensure you also update the documentation accordingly, but only adding minimal changes to reflect the new output.

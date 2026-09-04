@@ -1,0 +1,2 @@
+# Local recovery copies and validation artefacts; never publish.
+.local-archive/

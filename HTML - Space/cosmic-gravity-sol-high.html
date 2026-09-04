@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#02040b">
+<meta name="description" content="An interactive N-body cosmic gravity simulation with orbital systems, expansion, trails and black holes.">
+<title>Cosmic Gravity Playground | Sol High</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #eef7ff;
+    --muted: #9eb0c7;
+    --line: rgba(173, 213, 255, .16);
+    --cyan: #71e8ff;
+    --violet: #a998ff;
+    --panel: rgba(6, 11, 25, .67);
+  }
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    margin: 0;
+    background: #02040b;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+  canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  #cosmos { z-index: 0; transform: scale(1.025); transition: transform .8s ease-out; }
+  #trails { z-index: 1; }
+  #simulation { z-index: 2; cursor: crosshair; touch-action: none; }
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 48%, transparent 38%, rgba(0, 2, 10, .22) 75%, rgba(0, 1, 7, .74) 120%),
+      linear-gradient(180deg, rgba(1, 4, 14, .22), transparent 18%, transparent 80%, rgba(1, 3, 10, .38));
+  }
+  .panel {
+    position: fixed;
+    z-index: 6;
+    top: clamp(14px, 3vw, 30px);
+    left: clamp(14px, 3vw, 30px);
+    width: min(342px, calc(100vw - 28px));
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(13, 22, 44, .76), var(--panel));
+    box-shadow: 0 22px 70px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .05);
+    backdrop-filter: blur(20px) saturate(145%);
+    -webkit-backdrop-filter: blur(20px) saturate(145%);
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+    color: #94b5d7;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe { 50% { opacity: .35; transform: scale(.72); } }
+  h1 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.65rem, 4vw, 2.08rem);
+    font-weight: 400;
+    letter-spacing: -.035em;
+    line-height: 1.05;
+  }
+  .instructions {
+    margin: 11px 0 16px;
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.55;
+  }
+  .instructions strong { color: #dcecff; font-weight: 600; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 17px; }
+  button {
+    min-height: 39px;
+    border: 1px solid rgba(154, 201, 248, .17);
+    border-radius: 10px;
+    background: rgba(120, 168, 221, .07);
+    color: #e6f3ff;
+    font: 600 .76rem/1 inherit;
+    letter-spacing: .025em;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .2s;
+  }
+  button:hover { background: rgba(113, 232, 255, .13); border-color: rgba(113, 232, 255, .35); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .controls { display: grid; gap: 12px; }
+  .control-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  label { color: #c9d9ea; font-size: .74rem; font-weight: 600; }
+  output { color: #82dff5; font: 600 .68rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  input[type="range"] {
+    display: block;
+    width: 100%;
+    height: 18px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 4px; background: linear-gradient(90deg, rgba(113,232,255,.65), rgba(169,152,255,.34)); }
+  input[type="range"]::-webkit-slider-thumb { width: 13px; height: 13px; margin-top: -5px; appearance: none; -webkit-appearance: none; border: 2px solid #dffaff; border-radius: 50%; background: #6ddcf8; box-shadow: 0 0 10px rgba(113,232,255,.7); }
+  input[type="range"]::-moz-range-track { height: 3px; border: 0; border-radius: 4px; background: rgba(130, 196, 235, .45); }
+  input[type="range"]::-moz-range-thumb { width: 11px; height: 11px; border: 2px solid #dffaff; border-radius: 50%; background: #6ddcf8; box-shadow: 0 0 10px rgba(113,232,255,.7); }
+  .telemetry {
+    display: flex;
+    gap: 14px;
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(169, 205, 240, .11);
+    color: #72869f;
+    font: 600 .61rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+  .telemetry span:first-child { margin-right: auto; color: #829bb7; }
+  .cosmic-note {
+    position: fixed;
+    z-index: 5;
+    right: clamp(16px, 3vw, 30px);
+    bottom: clamp(14px, 3vw, 26px);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: rgba(177, 199, 222, .6);
+    font: 600 .64rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .cosmic-note::before { content: ""; width: 24px; height: 1px; background: rgba(113, 232, 255, .45); box-shadow: 0 0 7px rgba(113, 232, 255, .5); }
+  .flash { position: fixed; inset: 0; z-index: 5; pointer-events: none; background: white; opacity: 0; mix-blend-mode: screen; }
+  .flash.fire { animation: flash .38s ease-out; }
+  @keyframes flash { 0% { opacity: .18; } 100% { opacity: 0; } }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  @media (max-width: 620px) {
+    .panel { top: 10px; left: 10px; width: min(312px, calc(100vw - 20px)); padding: 15px; border-radius: 15px; }
+    .eyebrow { margin-bottom: 6px; }
+    h1 { font-size: 1.45rem; }
+    .instructions { margin: 8px 0 11px; font-size: .76rem; }
+    .controls { gap: 8px; }
+    .actions { margin-bottom: 11px; }
+    .telemetry { margin-top: 9px; padding-top: 9px; }
+    .cosmic-note { display: none; }
+  }
+  @media (max-height: 650px) {
+    .panel { padding: 13px 15px; }
+    .instructions { display: none; }
+    .controls { grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .actions { margin: 10px 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot { animation: none; }
+    #cosmos { transition: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="cosmos" aria-hidden="true"></canvas>
+<canvas id="trails" aria-hidden="true"></canvas>
+<canvas id="simulation" aria-label="Interactive cosmic gravity simulation. Drag on empty space to launch a star, or hold Shift and click to create a black hole."></canvas>
+<div class="vignette"></div>
+<div class="flash" id="flash"></div>
+
+<section class="panel" aria-label="Simulation controls">
+  <div class="eyebrow"><span class="live-dot"></span>N-body laboratory · live</div>
+  <h1>Cosmic Gravity<br>Playground</h1>
+  <p class="instructions"><strong>Drag to launch a star.</strong> Move nearby to stir space. <strong>Shift + click</strong> creates a singularity.</p>
+  <div class="actions">
+    <button id="pause" type="button" aria-pressed="false">Ⅱ&nbsp;&nbsp;Pause</button>
+    <button id="reset" type="button">↻&nbsp;&nbsp;Reset cosmos</button>
+  </div>
+  <div class="controls">
+    <div class="control">
+      <div class="control-head"><label for="speed">Simulation speed</label><output id="speedValue">1.00×</output></div>
+      <input id="speed" type="range" min="0.25" max="2" step="0.05" value="1" aria-label="Simulation speed">
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="gravity">Gravity strength</label><output id="gravityValue">1.00 G</output></div>
+      <input id="gravity" type="range" min="0.35" max="2.2" step="0.05" value="1" aria-label="Gravity strength">
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="density">Particle density</label><output id="densityValue">240</output></div>
+      <input id="density" type="range" min="120" max="360" step="20" value="240" aria-label="Particle density. Applied when released.">
+    </div>
+  </div>
+  <div class="telemetry" aria-live="polite"><span id="status">Expansion +0.012%</span><span id="bodyCount">0 bodies</span><span id="fps">60 fps</span></div>
+</section>
+<div class="cosmic-note">Local gravity · cosmic expansion</div>
+<div class="sr-only" id="announcement" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const TAU = Math.PI * 2;
+  const backgroundCanvas = document.getElementById("cosmos");
+  const trailCanvas = document.getElementById("trails");
+  const canvas = document.getElementById("simulation");
+  const background = backgroundCanvas.getContext("2d");
+  const trail = trailCanvas.getContext("2d");
+  const context = canvas.getContext("2d");
+  const flash = document.getElementById("flash");
+  const pauseButton = document.getElementById("pause");
+  const resetButton = document.getElementById("reset");
+  const speedInput = document.getElementById("speed");
+  const gravityInput = document.getElementById("gravity");
+  const densityInput = document.getElementById("density");
+  const speedValue = document.getElementById("speedValue");
+  const gravityValue = document.getElementById("gravityValue");
+  const densityValue = document.getElementById("densityValue");
+  const bodyCountElement = document.getElementById("bodyCount");
+  const fpsElement = document.getElementById("fps");
+  const statusElement = document.getElementById("status");
+  const announcement = document.getElementById("announcement");
+
+  const palette = [
+    [107, 229, 255], [127, 170, 255], [172, 139, 255],
+    [255, 149, 210], [255, 201, 133], [220, 241, 255]
+  ];
+  const state = {
+    width: innerWidth,
+    height: innerHeight,
+    dpr: Math.min(devicePixelRatio || 1, 2),
+    bodies: [],
+    effects: [],
+    stars: [],
+    paused: false,
+    speed: 1,
+    gravity: 1,
+    density: 240,
+    elapsed: 0,
+    fps: 60,
+    lastFrame: performance.now(),
+    pointer: { x: 0, y: 0, lastX: 0, lastY: 0, vx: 0, vy: 0, active: false, down: false, dragging: false, shift: false, startX: 0, startY: 0 },
+    accelerationX: new Float64Array(512),
+    accelerationY: new Float64Array(512)
+  };
+
+  function seededRandom(seed) {
+    let value = seed >>> 0;
+    return () => {
+      value += 0x6D2B79F5;
+      let result = value;
+      result = Math.imul(result ^ result >>> 15, result | 1);
+      result ^= result + Math.imul(result ^ result >>> 7, result | 61);
+      return ((result ^ result >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function randomBetween(minimum, maximum) {
+    return minimum + Math.random() * (maximum - minimum);
+  }
+
+  function rgba(colour, alpha) {
+    return `rgba(${colour[0]},${colour[1]},${colour[2]},${alpha})`;
+  }
+
+  function configureCanvas(target, drawingContext) {
+    target.width = Math.round(state.width * state.dpr);
+    target.height = Math.round(state.height * state.dpr);
+    target.style.width = `${state.width}px`;
+    target.style.height = `${state.height}px`;
+    drawingContext.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+  }
+
+  function drawBackground() {
+    const random = seededRandom(873421);
+    background.clearRect(0, 0, state.width, state.height);
+    const base = background.createLinearGradient(0, 0, state.width, state.height);
+    base.addColorStop(0, "#01030a");
+    base.addColorStop(.46, "#040817");
+    base.addColorStop(1, "#010208");
+    background.fillStyle = base;
+    background.fillRect(0, 0, state.width, state.height);
+
+    const clouds = [
+      [.16, .74, .38, [28, 61, 117], .20],
+      [.72, .21, .42, [72, 32, 112], .18],
+      [.52, .55, .48, [18, 88, 112], .10],
+      [.88, .77, .28, [119, 35, 88], .09],
+      [.33, .17, .22, [39, 54, 128], .11]
+    ];
+    background.save();
+    background.globalCompositeOperation = "screen";
+    for (const [x, y, radius, colour, alpha] of clouds) {
+      const size = Math.max(state.width, state.height) * radius;
+      const gradient = background.createRadialGradient(state.width * x, state.height * y, 0, state.width * x, state.height * y, size);
+      gradient.addColorStop(0, rgba(colour, alpha));
+      gradient.addColorStop(.35, rgba(colour, alpha * .42));
+      gradient.addColorStop(1, rgba(colour, 0));
+      background.fillStyle = gradient;
+      background.fillRect(0, 0, state.width, state.height);
+    }
+    background.restore();
+
+    state.stars.length = 0;
+    const starCount = Math.min(900, Math.round(state.width * state.height / 1500));
+    for (let index = 0; index < starCount; index++) {
+      const star = {
+        x: random() * state.width,
+        y: random() * state.height,
+        radius: random() < .965 ? random() * .7 + .15 : random() * 1.25 + .6,
+        alpha: random() * .55 + .12,
+        phase: random() * TAU,
+        speed: random() * 1.6 + .35,
+        blue: random() > .82
+      };
+      state.stars.push(star);
+      background.fillStyle = star.blue ? `rgba(145,205,255,${star.alpha})` : `rgba(225,234,255,${star.alpha})`;
+      background.beginPath();
+      background.arc(star.x, star.y, star.radius, 0, TAU);
+      background.fill();
+    }
+  }
+
+  function resize() {
+    const oldWidth = state.width;
+    const oldHeight = state.height;
+    state.width = innerWidth;
+    state.height = innerHeight;
+    state.dpr = Math.min(devicePixelRatio || 1, 2);
+    configureCanvas(backgroundCanvas, background);
+    configureCanvas(trailCanvas, trail);
+    configureCanvas(canvas, context);
+    if (oldWidth && oldHeight && state.bodies.length) {
+      const scaleX = state.width / oldWidth;
+      const scaleY = state.height / oldHeight;
+      for (const body of state.bodies) {
+        body.x *= scaleX;
+        body.y *= scaleY;
+        body.lastX = body.x;
+        body.lastY = body.y;
+      }
+    }
+    drawBackground();
+    trail.clearRect(0, 0, state.width, state.height);
+  }
+
+  function bodyRadius(mass, type) {
+    if (type === "blackhole") return 8 + Math.sqrt(mass) * .105;
+    if (type === "star" || mass > 70) return 3.2 + Math.log2(Math.max(2, mass)) * .72;
+    return .55 + Math.pow(mass, .3) * .55;
+  }
+
+  function createBody(x, y, velocityX, velocityY, mass, type = "particle", colour = palette[0]) {
+    const body = {
+      x, y, velocityX, velocityY, mass, type, colour,
+      radius: bodyRadius(mass, type),
+      lastX: x, lastY: y,
+      phase: Math.random() * TAU,
+      spin: randomBetween(-1.4, 1.4),
+      age: 0,
+      dead: false
+    };
+    state.bodies.push(body);
+    return body;
+  }
+
+  function orbitalVelocity(primaryMass, radius) {
+    return Math.sqrt(18 * state.gravity * primaryMass / Math.max(radius, 18));
+  }
+
+  function addOrbitingCloud(primary, count, innerRadius, outerRadius, flatten = 1, reverse = false) {
+    for (let index = 0; index < count; index++) {
+      const radius = randomBetween(innerRadius, outerRadius);
+      const angle = Math.random() * TAU;
+      const x = primary.x + Math.cos(angle) * radius;
+      const y = primary.y + Math.sin(angle) * radius * flatten;
+      const direction = reverse ? -1 : 1;
+      const speed = orbitalVelocity(primary.mass, radius) * randomBetween(.88, 1.12);
+      const tangentX = -Math.sin(angle) * direction;
+      const tangentY = Math.cos(angle) * flatten * direction;
+      const magnitude = Math.hypot(tangentX, tangentY) || 1;
+      createBody(
+        x, y,
+        primary.velocityX + tangentX / magnitude * speed,
+        primary.velocityY + tangentY / magnitude * speed,
+        randomBetween(.7, 4.8),
+        "particle",
+        palette[index % 4]
+      );
+    }
+  }
+
+  function clearTrails() {
+    trail.save();
+    trail.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    trail.clearRect(0, 0, state.width, state.height);
+    trail.restore();
+  }
+
+  function resetCosmos(announce = false) {
+    state.bodies.length = 0;
+    state.effects.length = 0;
+    state.elapsed = 0;
+    clearTrails();
+    const centreX = state.width * .51;
+    const centreY = state.height * .52;
+    const scale = Math.min(state.width, state.height);
+    const core = createBody(centreX, centreY, -1.4, 1.1, 5200, "star", [196, 224, 255]);
+
+    const discCount = Math.max(70, state.density - 62);
+    for (let index = 0; index < discCount; index++) {
+      const arm = index % 3;
+      const radius = randomBetween(scale * .09, scale * .46);
+      const angle = arm * TAU / 3 + radius * .025 + randomBetween(-.38, .38);
+      const flatten = .70;
+      const x = centreX + Math.cos(angle) * radius;
+      const y = centreY + Math.sin(angle) * radius * flatten;
+      const tangentX = -Math.sin(angle);
+      const tangentY = Math.cos(angle) * flatten;
+      const tangentLength = Math.hypot(tangentX, tangentY);
+      const speed = orbitalVelocity(core.mass, radius) * randomBetween(.84, 1.15);
+      const colourIndex = Math.min(5, Math.floor(radius / Math.max(1, scale * .085)));
+      createBody(
+        x, y,
+        core.velocityX + tangentX / tangentLength * speed + randomBetween(-1.2, 1.2),
+        core.velocityY + tangentY / tangentLength * speed + randomBetween(-1.2, 1.2),
+        Math.pow(randomBetween(.85, 1.82), 2.2),
+        "particle",
+        palette[colourIndex]
+      );
+    }
+
+    const orbiters = [
+      [scale * .14, 230, [255, 184, 112], .2],
+      [scale * .25, 125, [117, 212, 255], 2.45],
+      [scale * .37, 310, [255, 137, 203], 4.8]
+    ];
+    for (const [radius, mass, colour, angle] of orbiters) {
+      const speed = orbitalVelocity(core.mass + mass, radius);
+      createBody(
+        centreX + Math.cos(angle) * radius,
+        centreY + Math.sin(angle) * radius * .7,
+        -Math.sin(angle) * speed,
+        Math.cos(angle) * speed * .7,
+        mass, "star", colour
+      );
+    }
+
+    const secondaryAngle = -.58;
+    const secondaryRadius = Math.max(scale * .35, 190);
+    const secondarySpeed = orbitalVelocity(core.mass, secondaryRadius) * .94;
+    const secondary = createBody(
+      centreX + Math.cos(secondaryAngle) * secondaryRadius,
+      centreY + Math.sin(secondaryAngle) * secondaryRadius,
+      -Math.sin(secondaryAngle) * secondarySpeed,
+      Math.cos(secondaryAngle) * secondarySpeed,
+      1450, "star", [255, 186, 118]
+    );
+    addOrbitingCloud(secondary, 30, 25, Math.min(86, scale * .14), .78, true);
+
+    const singularityAngle = 3.82;
+    const singularityRadius = Math.max(scale * .40, 230);
+    const singularitySpeed = orbitalVelocity(core.mass, singularityRadius) * .86;
+    const singularity = createBody(
+      centreX + Math.cos(singularityAngle) * singularityRadius,
+      centreY + Math.sin(singularityAngle) * singularityRadius,
+      -Math.sin(singularityAngle) * singularitySpeed,
+      Math.cos(singularityAngle) * singularitySpeed,
+      2600, "blackhole", [174, 119, 255]
+    );
+    addOrbitingCloud(singularity, 26, 28, Math.min(105, scale * .17), .52, false);
+    burst(centreX, centreY, [142, 218, 255], 1.6, 0);
+    if (announce) announcement.textContent = "Cosmos reset.";
+    updateTelemetry();
+  }
+
+  function ensureAccelerationCapacity(count) {
+    if (state.accelerationX.length >= count) return;
+    const capacity = Math.max(count, state.accelerationX.length * 2);
+    state.accelerationX = new Float64Array(capacity);
+    state.accelerationY = new Float64Array(capacity);
+  }
+
+  function simulate(step) {
+    const bodies = state.bodies;
+    const count = bodies.length;
+    ensureAccelerationCapacity(count);
+    const accelerationX = state.accelerationX;
+    const accelerationY = state.accelerationY;
+    const centreX = state.width * .5;
+    const centreY = state.height * .5;
+    const expansion = .00012;
+    const gravitationalConstant = 18 * state.gravity;
+
+    for (let index = 0; index < count; index++) {
+      const body = bodies[index];
+      accelerationX[index] = (body.x - centreX) * expansion;
+      accelerationY[index] = (body.y - centreY) * expansion;
+    }
+
+    for (let firstIndex = 0; firstIndex < count; firstIndex++) {
+      const first = bodies[firstIndex];
+      for (let secondIndex = firstIndex + 1; secondIndex < count; secondIndex++) {
+        const second = bodies[secondIndex];
+        const deltaX = second.x - first.x;
+        const deltaY = second.y - first.y;
+        const softening = 10 + (first.radius + second.radius) * .14;
+        const distanceSquared = deltaX * deltaX + deltaY * deltaY + softening * softening;
+        const inverseDistanceCubed = 1 / (distanceSquared * Math.sqrt(distanceSquared));
+        const forceScale = gravitationalConstant * inverseDistanceCubed;
+        accelerationX[firstIndex] += deltaX * second.mass * forceScale;
+        accelerationY[firstIndex] += deltaY * second.mass * forceScale;
+        accelerationX[secondIndex] -= deltaX * first.mass * forceScale;
+        accelerationY[secondIndex] -= deltaY * first.mass * forceScale;
+      }
+    }
+
+    const pointer = state.pointer;
+    if (pointer.active && !pointer.down) {
+      const influenceRadius = 155;
+      for (let index = 0; index < count; index++) {
+        const body = bodies[index];
+        if (body.mass > 800) continue;
+        const deltaX = pointer.x - body.x;
+        const deltaY = pointer.y - body.y;
+        const distance = Math.hypot(deltaX, deltaY);
+        if (distance < influenceRadius && distance > 3) {
+          const falloff = Math.pow(1 - distance / influenceRadius, 2);
+          accelerationX[index] += deltaX / distance * falloff * 16 - deltaY / distance * falloff * 8 + pointer.vx * falloff * .5;
+          accelerationY[index] += deltaY / distance * falloff * 16 + deltaX / distance * falloff * 8 + pointer.vy * falloff * .5;
+        }
+      }
+      pointer.vx *= .91;
+      pointer.vy *= .91;
+    }
+
+    const damping = Math.pow(.99985, step * 60);
+    for (let index = 0; index < count; index++) {
+      const body = bodies[index];
+      body.lastX = body.x;
+      body.lastY = body.y;
+      let axisX = accelerationX[index];
+      let axisY = accelerationY[index];
+      const acceleration = Math.hypot(axisX, axisY);
+      if (acceleration > 480) {
+        axisX *= 480 / acceleration;
+        axisY *= 480 / acceleration;
+      }
+      body.velocityX = (body.velocityX + axisX * step) * damping;
+      body.velocityY = (body.velocityY + axisY * step) * damping;
+      const speed = Math.hypot(body.velocityX, body.velocityY);
+      if (speed > 720) {
+        body.velocityX *= 720 / speed;
+        body.velocityY *= 720 / speed;
+      }
+      body.x += body.velocityX * step;
+      body.y += body.velocityY * step;
+      body.age += step;
+      body.phase += body.spin * step;
+
+      const margin = 280;
+      if (body.mass < 60 && (body.x < -margin || body.x > state.width + margin || body.y < -margin || body.y > state.height + margin)) {
+        body.dead = true;
+      } else if (body.mass >= 60) {
+        if (body.x < -margin || body.x > state.width + margin) body.velocityX += (centreX - body.x) * .001;
+        if (body.y < -margin || body.y > state.height + margin) body.velocityY += (centreY - body.y) * .001;
+      }
+    }
+
+    resolveCaptures();
+    state.bodies = bodies.filter(body => !body.dead);
+    state.elapsed += step;
+  }
+
+  function resolveCaptures() {
+    const heavyBodies = state.bodies.filter(body => !body.dead && body.mass > 90);
+    for (const heavy of heavyBodies) {
+      for (const body of state.bodies) {
+        if (body === heavy || body.dead) continue;
+        const distance = Math.hypot(body.x - heavy.x, body.y - heavy.y);
+        const captureRadius = heavy.type === "blackhole" ? heavy.radius * 1.05 : (heavy.radius + body.radius) * .48;
+        if (distance >= captureRadius) continue;
+        if (body.mass < heavy.mass * .4) {
+          heavy.velocityX = (heavy.velocityX * heavy.mass + body.velocityX * body.mass) / (heavy.mass + body.mass);
+          heavy.velocityY = (heavy.velocityY * heavy.mass + body.velocityY * body.mass) / (heavy.mass + body.mass);
+          heavy.mass += body.mass * (heavy.type === "blackhole" ? .32 : .72);
+          heavy.radius = bodyRadius(heavy.mass, heavy.type);
+          body.dead = true;
+          if (Math.random() < .28 || body.mass > 40) burst(body.x, body.y, heavy.colour, Math.min(1.8, .4 + body.mass / 160), 10);
+        }
+      }
+    }
+  }
+
+  function burst(x, y, colour, scale = 1, sparkCount = 14) {
+    state.effects.push({ type: "ring", x, y, colour, age: 0, life: .8, scale });
+    for (let index = 0; index < sparkCount; index++) {
+      const angle = Math.random() * TAU;
+      const speed = randomBetween(18, 105) * scale;
+      state.effects.push({
+        type: "spark", x, y,
+        velocityX: Math.cos(angle) * speed,
+        velocityY: Math.sin(angle) * speed,
+        colour, age: 0, life: randomBetween(.35, .9), size: randomBetween(.5, 1.7)
+      });
+    }
+  }
+
+  function drawTrails() {
+    trail.save();
+    trail.globalCompositeOperation = "destination-out";
+    trail.fillStyle = "rgba(0,0,0,.055)";
+    trail.fillRect(0, 0, state.width, state.height);
+    trail.globalCompositeOperation = "lighter";
+    trail.lineCap = "round";
+    for (const body of state.bodies) {
+      const displacement = Math.hypot(body.x - body.lastX, body.y - body.lastY);
+      if (displacement > 45 || displacement < .02) continue;
+      const prominence = body.type === "particle" ? .12 : body.type === "blackhole" ? .34 : .26;
+      trail.strokeStyle = rgba(body.colour, prominence);
+      trail.lineWidth = body.type === "particle" ? Math.min(1.4, body.radius * .66) : Math.min(3.2, body.radius * .16);
+      trail.beginPath();
+      trail.moveTo(body.lastX, body.lastY);
+      trail.lineTo(body.x, body.y);
+      trail.stroke();
+    }
+    trail.restore();
+  }
+
+  function drawParticle(body) {
+    context.fillStyle = rgba(body.colour, .13);
+    context.beginPath();
+    context.arc(body.x, body.y, body.radius * 3.1, 0, TAU);
+    context.fill();
+    context.fillStyle = rgba(body.colour, .84);
+    context.beginPath();
+    context.arc(body.x, body.y, Math.max(.55, body.radius), 0, TAU);
+    context.fill();
+    if (body.mass > 3.2) {
+      context.fillStyle = "rgba(255,255,255,.78)";
+      context.beginPath();
+      context.arc(body.x, body.y, body.radius * .3, 0, TAU);
+      context.fill();
+    }
+  }
+
+  function drawStar(body) {
+    const pulse = 1 + Math.sin(state.elapsed * 2.1 + body.phase) * .035;
+    const radius = body.radius * pulse;
+    context.save();
+    context.translate(body.x, body.y);
+    context.rotate(body.phase * .18);
+    context.globalCompositeOperation = "lighter";
+    const halo = context.createRadialGradient(0, 0, 0, 0, 0, radius * 4.2);
+    halo.addColorStop(0, "rgba(255,255,255,.94)");
+    halo.addColorStop(.12, rgba(body.colour, .95));
+    halo.addColorStop(.38, rgba(body.colour, .24));
+    halo.addColorStop(1, rgba(body.colour, 0));
+    context.fillStyle = halo;
+    context.beginPath();
+    context.arc(0, 0, radius * 4.2, 0, TAU);
+    context.fill();
+    context.strokeStyle = rgba(body.colour, .25);
+    context.lineWidth = .7;
+    context.beginPath();
+    context.ellipse(0, 0, radius * 2.4, radius * .44, -.22, 0, TAU);
+    context.stroke();
+    context.fillStyle = "rgba(255,255,255,.96)";
+    context.beginPath();
+    context.arc(0, 0, Math.max(1.7, radius * .34), 0, TAU);
+    context.fill();
+    context.restore();
+  }
+
+  function drawBlackHole(body) {
+    const radius = body.radius;
+    const spin = body.phase * .42;
+    context.save();
+    context.translate(body.x, body.y);
+    context.rotate(spin);
+    context.globalCompositeOperation = "lighter";
+    const aura = context.createRadialGradient(0, 0, radius * .7, 0, 0, radius * 4.5);
+    aura.addColorStop(0, "rgba(255,255,255,.05)");
+    aura.addColorStop(.18, rgba(body.colour, .55));
+    aura.addColorStop(.44, "rgba(93,119,255,.12)");
+    aura.addColorStop(1, "rgba(0,0,0,0)");
+    context.fillStyle = aura;
+    context.beginPath();
+    context.arc(0, 0, radius * 4.5, 0, TAU);
+    context.fill();
+    context.lineCap = "round";
+    for (let index = 0; index < 3; index++) {
+      context.strokeStyle = index === 1 ? "rgba(255,191,238,.58)" : rgba(body.colour, .28 - index * .05);
+      context.lineWidth = Math.max(1, radius * (.18 - index * .03));
+      context.beginPath();
+      context.ellipse(0, 0, radius * (1.45 + index * .42), radius * (.28 + index * .1), -.12, index * .55, Math.PI * (1.2 + index * .27));
+      context.stroke();
+    }
+    context.globalCompositeOperation = "source-over";
+    const shadow = context.createRadialGradient(-radius * .2, -radius * .2, 0, 0, 0, radius * 1.12);
+    shadow.addColorStop(0, "#000000");
+    shadow.addColorStop(.72, "#010108");
+    shadow.addColorStop(.9, "rgba(4,4,14,.98)");
+    shadow.addColorStop(1, "rgba(92,92,166,.35)");
+    context.fillStyle = shadow;
+    context.beginPath();
+    context.arc(0, 0, radius * 1.1, 0, TAU);
+    context.fill();
+    context.strokeStyle = "rgba(221,225,255,.48)";
+    context.lineWidth = .65;
+    context.beginPath();
+    context.arc(0, 0, radius * 1.17, .2, Math.PI * 1.2);
+    context.stroke();
+    context.restore();
+  }
+
+  function drawEffects(delta) {
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    for (const effect of state.effects) {
+      effect.age += delta;
+      const progress = effect.age / effect.life;
+      if (effect.type === "ring") {
+        const radius = (9 + progress * 80) * effect.scale;
+        context.strokeStyle = rgba(effect.colour, (1 - progress) * .55);
+        context.lineWidth = Math.max(.5, (1 - progress) * 2.2);
+        context.beginPath();
+        context.arc(effect.x, effect.y, radius, 0, TAU);
+        context.stroke();
+      } else {
+        effect.x += effect.velocityX * delta;
+        effect.y += effect.velocityY * delta;
+        effect.velocityX *= Math.pow(.975, delta * 60);
+        effect.velocityY *= Math.pow(.975, delta * 60);
+        context.fillStyle = rgba(effect.colour, (1 - progress) * .8);
+        context.beginPath();
+        context.arc(effect.x, effect.y, effect.size * (1 - progress * .5), 0, TAU);
+        context.fill();
+      }
+    }
+    context.restore();
+    state.effects = state.effects.filter(effect => effect.age < effect.life);
+  }
+
+  function drawTwinkles() {
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    for (let index = 0; index < state.stars.length; index += 17) {
+      const star = state.stars[index];
+      const alpha = Math.max(0, Math.sin(state.elapsed * star.speed + star.phase)) * star.alpha * .35;
+      if (alpha <= .02) continue;
+      context.fillStyle = star.blue ? `rgba(130,207,255,${alpha})` : `rgba(255,255,255,${alpha})`;
+      context.beginPath();
+      context.arc(star.x, star.y, star.radius * 2.3, 0, TAU);
+      context.fill();
+    }
+    context.restore();
+  }
+
+  function drawLaunchGuide() {
+    const pointer = state.pointer;
+    if (!pointer.down || !pointer.dragging) return;
+    const deltaX = pointer.x - pointer.startX;
+    const deltaY = pointer.y - pointer.startY;
+    const length = Math.hypot(deltaX, deltaY);
+    const colour = pointer.shift ? [191, 117, 255] : [112, 229, 255];
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    context.strokeStyle = rgba(colour, .72);
+    context.lineWidth = 1.2;
+    context.setLineDash([4, 7]);
+    context.lineDashOffset = -state.elapsed * 18;
+    context.beginPath();
+    context.moveTo(pointer.startX, pointer.startY);
+    context.lineTo(pointer.x, pointer.y);
+    context.stroke();
+    context.setLineDash([]);
+    context.strokeStyle = rgba(colour, .52);
+    context.lineWidth = 1;
+    context.beginPath();
+    context.arc(pointer.startX, pointer.startY, 10 + Math.sin(state.elapsed * 6) * 2, 0, TAU);
+    context.stroke();
+
+    if (length > 8) {
+      const unitX = deltaX / length;
+      const unitY = deltaY / length;
+      context.fillStyle = rgba(colour, .9);
+      context.beginPath();
+      context.moveTo(pointer.x, pointer.y);
+      context.lineTo(pointer.x - unitX * 13 - unitY * 5, pointer.y - unitY * 13 + unitX * 5);
+      context.lineTo(pointer.x - unitX * 13 + unitY * 5, pointer.y - unitY * 13 - unitX * 5);
+      context.closePath();
+      context.fill();
+      drawPredictedPath(pointer.startX, pointer.startY, deltaX * .22, deltaY * .22, colour);
+    }
+    context.restore();
+  }
+
+  function drawPredictedPath(x, y, velocityX, velocityY, colour) {
+    const massive = state.bodies.filter(body => body.mass > 80).sort((a, b) => b.mass - a.mass).slice(0, 7);
+    context.beginPath();
+    context.moveTo(x, y);
+    let positionX = x;
+    let positionY = y;
+    const timeStep = .13;
+    for (let index = 0; index < 48; index++) {
+      let axisX = 0;
+      let axisY = 0;
+      for (const body of massive) {
+        const deltaX = body.x - positionX;
+        const deltaY = body.y - positionY;
+        const distanceSquared = deltaX * deltaX + deltaY * deltaY + 250;
+        const inverseDistanceCubed = 1 / (distanceSquared * Math.sqrt(distanceSquared));
+        axisX += deltaX * body.mass * 18 * state.gravity * inverseDistanceCubed;
+        axisY += deltaY * body.mass * 18 * state.gravity * inverseDistanceCubed;
+      }
+      velocityX += axisX * timeStep;
+      velocityY += axisY * timeStep;
+      positionX += velocityX * timeStep;
+      positionY += velocityY * timeStep;
+      context.lineTo(positionX, positionY);
+    }
+    context.strokeStyle = rgba(colour, .25);
+    context.lineWidth = 1;
+    context.stroke();
+  }
+
+  function render(delta) {
+    context.clearRect(0, 0, state.width, state.height);
+    drawTwinkles();
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    for (const body of state.bodies) {
+      if (body.type === "particle") drawParticle(body);
+    }
+    context.restore();
+    for (const body of state.bodies) {
+      if (body.type === "star") drawStar(body);
+      else if (body.type === "blackhole") drawBlackHole(body);
+    }
+    drawEffects(delta);
+    drawLaunchGuide();
+  }
+
+  function launchObject(startX, startY, endX, endY, makeBlackHole) {
+    const dragX = endX - startX;
+    const dragY = endY - startY;
+    const distance = Math.hypot(dragX, dragY);
+    if (state.bodies.length > 500) {
+      const removable = state.bodies.find(body => body.type === "particle");
+      if (removable) removable.dead = true;
+    }
+    if (makeBlackHole) {
+      createBody(startX, startY, dragX * .1, dragY * .1, 3600 + Math.min(2600, distance * 8), "blackhole", [183, 119, 255]);
+      burst(startX, startY, [188, 124, 255], 1.25, 22);
+      flash.classList.remove("fire");
+      void flash.offsetWidth;
+      flash.classList.add("fire");
+      announcement.textContent = "Singularity created.";
+    } else {
+      const colour = palette[Math.floor(Math.random() * palette.length)];
+      createBody(startX, startY, dragX * .22, dragY * .22, 300 + Math.min(1150, distance * 4.5), "star", colour);
+      burst(startX, startY, colour, .78, 15);
+      announcement.textContent = distance > 8 ? "Star launched." : "Massive star created.";
+    }
+  }
+
+  function updateTelemetry() {
+    bodyCountElement.textContent = `${state.bodies.length} bodies`;
+    fpsElement.textContent = `${Math.round(state.fps)} fps`;
+  }
+
+  function frame(now) {
+    const rawDelta = Math.min(.035, Math.max(0, (now - state.lastFrame) / 1000));
+    state.lastFrame = now;
+    state.fps += ((rawDelta > 0 ? 1 / rawDelta : 60) - state.fps) * .05;
+    if (!state.paused) {
+      const substeps = Math.max(1, Math.ceil(state.speed));
+      const simulationStep = rawDelta * state.speed / substeps;
+      for (let index = 0; index < substeps; index++) simulate(simulationStep);
+      drawTrails();
+    }
+    render(rawDelta);
+    if ((now | 0) % 20 < 17) updateTelemetry();
+    requestAnimationFrame(frame);
+  }
+
+  function updatePointer(event) {
+    const previousX = state.pointer.x;
+    const previousY = state.pointer.y;
+    state.pointer.x = event.clientX;
+    state.pointer.y = event.clientY;
+    state.pointer.vx = state.pointer.vx * .62 + (state.pointer.x - previousX) * .38;
+    state.pointer.vy = state.pointer.vy * .62 + (state.pointer.y - previousY) * .38;
+    state.pointer.shift = event.shiftKey;
+    if (state.pointer.down && Math.hypot(state.pointer.x - state.pointer.startX, state.pointer.y - state.pointer.startY) > 5) state.pointer.dragging = true;
+    const parallaxX = (state.pointer.x / Math.max(1, state.width) - .5) * -9;
+    const parallaxY = (state.pointer.y / Math.max(1, state.height) - .5) * -9;
+    backgroundCanvas.style.transform = `scale(1.025) translate(${parallaxX}px, ${parallaxY}px)`;
+  }
+
+  canvas.addEventListener("pointerenter", event => { state.pointer.active = true; updatePointer(event); });
+  canvas.addEventListener("pointerleave", () => { if (!state.pointer.down) state.pointer.active = false; });
+  canvas.addEventListener("pointermove", updatePointer);
+  canvas.addEventListener("pointerdown", event => {
+    if (event.button !== 0) return;
+    updatePointer(event);
+    state.pointer.down = true;
+    state.pointer.dragging = false;
+    state.pointer.startX = event.clientX;
+    state.pointer.startY = event.clientY;
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener("pointerup", event => {
+    if (!state.pointer.down) return;
+    updatePointer(event);
+    launchObject(state.pointer.startX, state.pointer.startY, state.pointer.x, state.pointer.y, event.shiftKey || state.pointer.shift);
+    state.pointer.down = false;
+    state.pointer.dragging = false;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+  });
+  canvas.addEventListener("pointercancel", () => { state.pointer.down = false; state.pointer.dragging = false; });
+  canvas.addEventListener("contextmenu", event => event.preventDefault());
+
+  pauseButton.addEventListener("click", () => {
+    state.paused = !state.paused;
+    pauseButton.setAttribute("aria-pressed", String(state.paused));
+    pauseButton.innerHTML = state.paused ? "▶&nbsp;&nbsp;Resume" : "Ⅱ&nbsp;&nbsp;Pause";
+    statusElement.textContent = state.paused ? "Simulation paused" : "Expansion +0.012%";
+    announcement.textContent = state.paused ? "Simulation paused." : "Simulation resumed.";
+    state.lastFrame = performance.now();
+  });
+  resetButton.addEventListener("click", () => resetCosmos(true));
+  speedInput.addEventListener("input", () => {
+    state.speed = Number(speedInput.value);
+    speedValue.textContent = `${state.speed.toFixed(2)}×`;
+  });
+  gravityInput.addEventListener("input", () => {
+    state.gravity = Number(gravityInput.value);
+    gravityValue.textContent = `${state.gravity.toFixed(2)} G`;
+  });
+  densityInput.addEventListener("input", () => { densityValue.textContent = densityInput.value; });
+  densityInput.addEventListener("change", () => {
+    state.density = Number(densityInput.value);
+    resetCosmos(false);
+    announcement.textContent = `Particle density set to ${state.density}. Cosmos regenerated.`;
+  });
+  addEventListener("keydown", event => {
+    if (event.code === "Space" && event.target === document.body) { event.preventDefault(); pauseButton.click(); }
+    if (event.key.toLowerCase() === "r" && event.target === document.body) resetButton.click();
+  });
+  addEventListener("resize", resize, { passive: true });
+
+  resize();
+  resetCosmos(false);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
