@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#03050d">
+  <meta name="description" content="An interactive N-body cosmology simulation with gravity, cosmic expansion, trails and black holes.">
+  <title>Cosmic Gravity Playground</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f8ff;
+      --muted: #98a6c8;
+      --line: rgba(176, 199, 255, .16);
+      --glass: rgba(8, 12, 29, .68);
+      --cyan: #7de9ff;
+      --violet: #a78bfa;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #02030a;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9;
+      background:
+        radial-gradient(circle at 50% 45%, transparent 48%, rgba(0, 0, 0, .38) 100%),
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size: auto, 100% 4px;
+      mix-blend-mode: normal;
+      opacity: .65;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    #background { z-index: 0; }
+    #trails { z-index: 1; }
+    #universe { z-index: 2; }
+
+    .brand {
+      position: fixed;
+      z-index: 5;
+      top: max(24px, env(safe-area-inset-top));
+      left: max(26px, env(safe-area-inset-left));
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 8px 30px rgba(0, 0, 0, .5));
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 9px;
+      color: #a9b9df;
+      font-size: .72rem;
+      font-weight: 650;
+      letter-spacing: .19em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--cyan), transparent);
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2.4vw, 2.35rem);
+      line-height: 1;
+      font-weight: 520;
+      letter-spacing: -.045em;
+      text-shadow: 0 0 30px rgba(133, 177, 255, .22);
+    }
+
+    h1 span {
+      color: #9aa9cd;
+      font-weight: 300;
+    }
+
+    .panel {
+      position: fixed;
+      z-index: 6;
+      top: max(24px, env(safe-area-inset-top));
+      right: max(24px, env(safe-area-inset-right));
+      width: min(310px, calc(100vw - 48px));
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(25, 35, 70, .37), transparent 45%),
+        var(--glass);
+      box-shadow: 0 18px 70px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.06);
+      backdrop-filter: blur(18px) saturate(135%);
+      -webkit-backdrop-filter: blur(18px) saturate(135%);
+      transition: transform .35s ease, opacity .35s ease;
+      user-select: none;
+    }
+
+    .panel-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 13px;
+    }
+
+    .live {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #dce5ff;
+      font-size: .73rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #77f8c9;
+      box-shadow: 0 0 13px #77f8c9;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .paused .live-dot { background: #ffc66d; box-shadow: 0 0 13px #ffc66d; animation: none; }
+
+    @keyframes pulse { 50% { opacity: .38; transform: scale(.72); } }
+
+    .metrics {
+      color: #7786ac;
+      font: 600 .7rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .04em;
+    }
+
+    .hint {
+      margin: 0 0 17px;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.52;
+    }
+
+    .hint strong { color: #dce6ff; font-weight: 620; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 19px;
+    }
+
+    button {
+      appearance: none;
+      min-height: 40px;
+      border: 1px solid rgba(178, 202, 255, .17);
+      border-radius: 11px;
+      background: rgba(137, 165, 231, .08);
+      color: #e8edff;
+      font: 650 .78rem/1 inherit;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    button:hover { background: rgba(137, 165, 231, .16); border-color: rgba(178, 202, 255, .32); }
+    button:active { transform: scale(.97); }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+    .control { margin-top: 14px; }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      color: #a7b4d3;
+      font-size: .75rem;
+      font-weight: 650;
+    }
+
+    output {
+      color: #e8edff;
+      font: 650 .7rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 18px;
+      margin: 0;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(125,233,255,.6), rgba(167,139,250,.35));
+      box-shadow: 0 0 12px rgba(125,233,255,.12);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 3px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(125,233,255,.6), rgba(167,139,250,.35));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      margin-top: -5.5px;
+      border: 2px solid #d8f8ff;
+      border-radius: 50%;
+      background: #4d80a9;
+      box-shadow: 0 0 12px rgba(125,233,255,.75);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border: 2px solid #d8f8ff;
+      border-radius: 50%;
+      background: #4d80a9;
+      box-shadow: 0 0 12px rgba(125,233,255,.75);
+    }
+
+    .legend {
+      position: fixed;
+      z-index: 5;
+      left: max(27px, env(safe-area-inset-left));
+      bottom: max(23px, env(safe-area-inset-bottom));
+      display: flex;
+      gap: 17px;
+      align-items: center;
+      color: rgba(182, 196, 227, .72);
+      font-size: .71rem;
+      letter-spacing: .02em;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .legend span { display: flex; gap: 7px; align-items: center; }
+    .legend i { width: 6px; height: 6px; border-radius: 50%; display: block; }
+    .legend .star i { background: #a7edff; box-shadow: 0 0 9px #77dfff; }
+    .legend .well i { background: #02030a; border: 1px solid #bd8cff; box-shadow: 0 0 10px #8a61ff; }
+    .legend .expansion i { background: #ff92c9; box-shadow: 0 0 9px #ff75bb; }
+
+    .drag-label {
+      position: fixed;
+      z-index: 7;
+      display: none;
+      padding: 7px 10px;
+      border: 1px solid rgba(174, 209, 255, .2);
+      border-radius: 8px;
+      color: #dceaff;
+      background: rgba(6, 10, 25, .75);
+      backdrop-filter: blur(10px);
+      font: 600 .7rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 720px) {
+      .brand { top: 18px; left: 18px; }
+      .eyebrow { font-size: .64rem; margin-bottom: 7px; }
+      .panel { top: auto; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: min(320px, calc(100vw - 24px)); padding: 15px; }
+      .hint { font-size: .76rem; margin-bottom: 12px; }
+      .actions { margin-bottom: 12px; }
+      .control { margin-top: 9px; }
+      .legend { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .live-dot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="background" aria-hidden="true"></canvas>
+  <canvas id="trails" aria-hidden="true"></canvas>
+  <canvas id="universe" aria-label="Interactive gravitational particle simulation"></canvas>
+
+  <header class="brand">
+    <div class="eyebrow">N-body observatory</div>
+    <h1>Cosmic Gravity <span>Playground</span></h1>
+  </header>
+
+  <aside class="panel" aria-label="Simulation controls">
+    <div class="panel-top">
+      <div class="live"><span class="live-dot"></span><span id="stateLabel">Simulation live</span></div>
+      <div class="metrics"><span id="bodyCount">0</span> bodies · <span id="fps">60</span> fps</div>
+    </div>
+    <p class="hint"><strong>Click</strong> to seed a star. <strong>Drag</strong> to launch it. Move through space to stir nearby matter. <strong>Shift + click</strong> creates a black hole.</p>
+    <div class="actions">
+      <button id="pauseButton" type="button" aria-pressed="false">Pause</button>
+      <button id="resetButton" type="button">Reset cosmos</button>
+    </div>
+    <div class="control">
+      <label class="control-label" for="speed">Simulation speed <output id="speedValue">1.0×</output></label>
+      <input id="speed" type="range" min="0.25" max="2" value="1" step="0.05">
+    </div>
+    <div class="control">
+      <label class="control-label" for="gravity">Gravity strength <output id="gravityValue">1.0×</output></label>
+      <input id="gravity" type="range" min="0.35" max="1.8" value="1" step="0.05">
+    </div>
+    <div class="control">
+      <label class="control-label" for="density">Particle density <output id="densityValue">260</output></label>
+      <input id="density" type="range" min="120" max="480" value="260" step="20">
+    </div>
+  </aside>
+
+  <div class="legend" aria-hidden="true">
+    <span class="star"><i></i>stellar body</span>
+    <span class="well"><i></i>gravity well</span>
+    <span class="expansion"><i></i>cosmic drift</span>
+  </div>
+  <div class="drag-label" id="dragLabel">launch velocity</div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const backgroundCanvas = document.getElementById('background');
+      const trailCanvas = document.getElementById('trails');
+      const canvas = document.getElementById('universe');
+      const bg = backgroundCanvas.getContext('2d');
+      const trails = trailCanvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
+      const panel = document.querySelector('.panel');
+      const pauseButton = document.getElementById('pauseButton');
+      const resetButton = document.getElementById('resetButton');
+      const speedInput = document.getElementById('speed');
+      const gravityInput = document.getElementById('gravity');
+      const densityInput = document.getElementById('density');
+      const speedValue = document.getElementById('speedValue');
+      const gravityValue = document.getElementById('gravityValue');
+      const densityValue = document.getElementById('densityValue');
+      const stateLabel = document.getElementById('stateLabel');
+      const bodyCountLabel = document.getElementById('bodyCount');
+      const fpsLabel = document.getElementById('fps');
+      const dragLabel = document.getElementById('dragLabel');
+
+      const TAU = Math.PI * 2;
+      const STAR_COLOURS = [
+        [112, 211, 255], [157, 178, 255], [255, 190, 130],
+        [255, 126, 163], [196, 145, 255], [139, 248, 222]
+      ];
+
+      let width = innerWidth;
+      let height = innerHeight;
+      let dpr = Math.min(devicePixelRatio || 1, 1.6);
+      let bodies = [];
+      let flashes = [];
+      let ripples = [];
+      let paused = false;
+      let simulationSpeed = 1;
+      let gravityScale = 1;
+      let expansionRate = 0.0000022;
+      let lastTime = performance.now();
+      let fpsSmooth = 60;
+      let frame = 0;
+      let densityTimer = 0;
+      let pointer = { x: width / 2, y: height / 2, px: width / 2, py: height / 2, active: false, down: false, shift: false };
+      let dragStart = null;
+      let starField = [];
+
+      class Body {
+        constructor(x, y, vx, vy, mass, colour, type = 'dust') {
+          this.x = x;
+          this.y = y;
+          this.px = x - vx;
+          this.py = y - vy;
+          this.vx = vx;
+          this.vy = vy;
+          this.ax = 0;
+          this.ay = 0;
+          this.mass = mass;
+          this.colour = colour;
+          this.type = type;
+          this.radius = type === 'blackhole' ? Math.max(7, Math.sqrt(mass) * 1.22) : Math.max(.55, Math.pow(mass, .38));
+          this.phase = Math.random() * TAU;
+          this.age = 0;
+          this.dead = false;
+        }
+      }
+
+      function randomColour(index = Math.random() * STAR_COLOURS.length) {
+        return STAR_COLOURS[Math.floor(index) % STAR_COLOURS.length];
+      }
+
+      function resize() {
+        width = innerWidth;
+        height = innerHeight;
+        dpr = Math.min(devicePixelRatio || 1, 1.6);
+        for (const target of [backgroundCanvas, trailCanvas, canvas]) {
+          target.width = Math.round(width * dpr);
+          target.height = Math.round(height * dpr);
+          target.style.width = width + 'px';
+          target.style.height = height + 'px';
+        }
+        for (const context of [bg, trails, ctx]) context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        buildBackground();
+        trails.clearRect(0, 0, width, height);
+      }
+
+      function seededRandom(seed) {
+        let value = seed >>> 0;
+        return () => {
+          value += 0x6D2B79F5;
+          let result = value;
+          result = Math.imul(result ^ result >>> 15, result | 1);
+          result ^= result + Math.imul(result ^ result >>> 7, result | 61);
+          return ((result ^ result >>> 14) >>> 0) / 4294967296;
+        };
+      }
+
+      function buildBackground() {
+        const random = seededRandom(91427 + Math.round(width));
+        starField = [];
+        bg.clearRect(0, 0, width, height);
+        bg.fillStyle = '#02030a';
+        bg.fillRect(0, 0, width, height);
+
+        const nebulae = [
+          { x: .18, y: .28, r: .54, c: '68, 69, 165', a: .19 },
+          { x: .76, y: .68, r: .62, c: '24, 107, 148', a: .13 },
+          { x: .58, y: .18, r: .40, c: '126, 45, 119', a: .09 }
+        ];
+        for (const cloud of nebulae) {
+          const radius = Math.max(width, height) * cloud.r;
+          const gradient = bg.createRadialGradient(width * cloud.x, height * cloud.y, 0, width * cloud.x, height * cloud.y, radius);
+          gradient.addColorStop(0, `rgba(${cloud.c}, ${cloud.a})`);
+          gradient.addColorStop(.35, `rgba(${cloud.c}, ${cloud.a * .38})`);
+          gradient.addColorStop(1, `rgba(${cloud.c}, 0)`);
+          bg.fillStyle = gradient;
+          bg.fillRect(0, 0, width, height);
+        }
+
+        const dustCount = Math.min(1600, Math.floor(width * height / 750));
+        for (let i = 0; i < dustCount; i++) {
+          const x = random() * width;
+          const y = random() * height;
+          const size = random() < .025 ? random() * 1.7 + .7 : random() * .8 + .15;
+          const alpha = random() * .52 + .09;
+          const depth = random();
+          starField.push({ x, y, size, alpha, depth, twinkle: random() * TAU });
+          bg.fillStyle = `rgba(${170 + random() * 75}, ${185 + random() * 60}, 255, ${alpha})`;
+          bg.fillRect(x, y, size, size);
+        }
+
+        bg.globalCompositeOperation = 'screen';
+        for (let i = 0; i < 65; i++) {
+          const x = random() * width;
+          const y = random() * height;
+          const a = random() * .018;
+          const r = random() * 110 + 30;
+          const glow = bg.createRadialGradient(x, y, 0, x, y, r);
+          glow.addColorStop(0, `rgba(137, 118, 255, ${a})`);
+          glow.addColorStop(1, 'rgba(30, 50, 120, 0)');
+          bg.fillStyle = glow;
+          bg.fillRect(x - r, y - r, r * 2, r * 2);
+        }
+        bg.globalCompositeOperation = 'source-over';
+      }
+
+      function addOrbitingBody(cx, cy, radius, angle, mass, centralMass, colour, direction = 1, eccentricity = 1) {
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius * eccentricity;
+        const speed = Math.sqrt((centralMass * 0.092) / Math.max(radius, 1)) * direction;
+        const vx = -Math.sin(angle) * speed;
+        const vy = Math.cos(angle) * speed / Math.max(eccentricity, .55);
+        bodies.push(new Body(x, y, vx, vy, mass, colour, mass > 22 ? 'star' : 'dust'));
+      }
+
+      function resetSimulation() {
+        bodies = [];
+        flashes = [];
+        ripples = [];
+        trails.clearRect(0, 0, width, height);
+
+        const cx = width * .50;
+        const cy = height * .52;
+        const coreMass = 460;
+        bodies.push(new Body(cx, cy, -.015, .025, coreMass, [186, 216, 255], 'star'));
+
+        const density = Number(densityInput.value);
+        const arms = 3;
+        for (let i = 0; i < density; i++) {
+          const arm = i % arms;
+          const progress = Math.pow(Math.random(), .72);
+          const radius = 34 + progress * Math.min(width, height) * .39;
+          const angle = arm * TAU / arms + progress * 4.7 + (Math.random() - .5) * .48;
+          const flatten = .72;
+          const x = cx + Math.cos(angle) * radius + (Math.random() - .5) * 8;
+          const y = cy + Math.sin(angle) * radius * flatten + (Math.random() - .5) * 8;
+          const enclosedMass = coreMass + progress * density * .32;
+          const speed = Math.sqrt((enclosedMass * .092) / radius) * (.88 + Math.random() * .18);
+          const colour = randomColour(arm + (Math.random() > .82 ? 3 : 0));
+          bodies.push(new Body(x, y, -Math.sin(angle) * speed, Math.cos(angle) * speed / flatten, .42 + Math.random() * 2.4, colour, 'dust'));
+        }
+
+        const planets = [
+          [78, .2, 18, [255, 192, 123]],
+          [132, 2.45, 11, [115, 225, 255]],
+          [194, 4.9, 27, [222, 140, 255]]
+        ];
+        for (const [radius, angle, mass, colour] of planets) addOrbitingBody(cx, cy, radius, angle, mass, coreMass, colour, 1, .72);
+
+        const bx = width * .76;
+        const by = height * .28;
+        const binaryMass = 95;
+        bodies.push(new Body(bx - 25, by, .08, -.48, binaryMass, [255, 145, 175], 'star'));
+        bodies.push(new Body(bx + 25, by, -.08, .48, binaryMass * .82, [128, 217, 255], 'star'));
+        for (let i = 0; i < Math.max(18, density * .10); i++) {
+          const angle = Math.random() * TAU;
+          const radius = 48 + Math.random() * 76;
+          const speed = Math.sqrt((binaryMass * 1.7 * .092) / radius) * .86;
+          bodies.push(new Body(bx + Math.cos(angle) * radius, by + Math.sin(angle) * radius, -Math.sin(angle) * speed, Math.cos(angle) * speed, .45 + Math.random(), randomColour(i + 2), 'dust'));
+        }
+        bodyCountLabel.textContent = bodies.length;
+      }
+
+      function addBody(x, y, vx, vy, blackHole = false) {
+        const mass = blackHole ? 680 : 54 + Math.random() * 48;
+        const colour = blackHole ? [198, 142, 255] : randomColour();
+        const type = blackHole ? 'blackhole' : 'star';
+        bodies.push(new Body(x, y, vx, vy, mass, colour, type));
+        ripples.push({ x, y, radius: 6, alpha: 1, colour, heavy: blackHole });
+        flashes.push({ x, y, life: 1, size: blackHole ? 80 : 42, colour });
+        bodyCountLabel.textContent = bodies.length;
+      }
+
+      function calculatePhysics(dt) {
+        const count = bodies.length;
+        const G = .092 * gravityScale;
+        const softening = 34;
+
+        for (let i = 0; i < count; i++) {
+          const body = bodies[i];
+          body.ax = 0;
+          body.ay = 0;
+        }
+
+        for (let i = 0; i < count; i++) {
+          const a = bodies[i];
+          if (a.dead) continue;
+          for (let j = i + 1; j < count; j++) {
+            const b = bodies[j];
+            if (b.dead) continue;
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const distSq = dx * dx + dy * dy + softening;
+            const dist = Math.sqrt(distSq);
+            const invDist = 1 / dist;
+            const force = G / distSq;
+            const fx = dx * invDist * force;
+            const fy = dy * invDist * force;
+            a.ax += fx * b.mass;
+            a.ay += fy * b.mass;
+            b.ax -= fx * a.mass;
+            b.ay -= fy * a.mass;
+
+            const collisionDistance = (a.radius + b.radius) * .46;
+            if (dist < collisionDistance && (a.mass > 5 || b.mass > 5)) mergeBodies(a, b);
+          }
+        }
+
+        const centreX = width * .5;
+        const centreY = height * .5;
+        const mouseVX = pointer.x - pointer.px;
+        const mouseVY = pointer.y - pointer.py;
+        for (const body of bodies) {
+          if (body.dead) continue;
+          body.px = body.x;
+          body.py = body.y;
+
+          body.ax += (body.x - centreX) * expansionRate;
+          body.ay += (body.y - centreY) * expansionRate;
+
+          if (pointer.active && !pointer.down) {
+            const dx = body.x - pointer.x;
+            const dy = body.y - pointer.y;
+            const distanceSq = dx * dx + dy * dy;
+            if (distanceSq < 19000 && distanceSq > 5) {
+              const falloff = 1 - Math.sqrt(distanceSq) / 138;
+              body.vx += (mouseVX * .006 - dy * .00024) * falloff;
+              body.vy += (mouseVY * .006 + dx * .00024) * falloff;
+            }
+          }
+
+          body.vx = (body.vx + body.ax * dt) * .99992;
+          body.vy = (body.vy + body.ay * dt) * .99992;
+          const speed = Math.hypot(body.vx, body.vy);
+          const maxSpeed = body.type === 'dust' ? 9 : 6;
+          if (speed > maxSpeed) {
+            body.vx = body.vx / speed * maxSpeed;
+            body.vy = body.vy / speed * maxSpeed;
+          }
+          body.x += body.vx * dt;
+          body.y += body.vy * dt;
+          body.age += dt;
+
+          const margin = 260;
+          if (body.x < -margin || body.x > width + margin || body.y < -margin || body.y > height + margin) {
+            if (body.type === 'dust') body.dead = true;
+            else {
+              body.vx += (centreX - body.x) * .00005;
+              body.vy += (centreY - body.y) * .00005;
+            }
+          }
+        }
+
+        if (frame % 15 === 0) {
+          bodies = bodies.filter(body => !body.dead);
+          bodyCountLabel.textContent = bodies.length;
+        }
+      }
+
+      function mergeBodies(a, b) {
+        if (a.dead || b.dead) return;
+        let larger = a.mass >= b.mass ? a : b;
+        let smaller = larger === a ? b : a;
+        if (larger.type === 'dust' && smaller.type === 'dust') return;
+
+        const totalMass = larger.mass + smaller.mass;
+        larger.vx = (larger.vx * larger.mass + smaller.vx * smaller.mass) / totalMass;
+        larger.vy = (larger.vy * larger.mass + smaller.vy * smaller.mass) / totalMass;
+        larger.x = (larger.x * larger.mass + smaller.x * smaller.mass) / totalMass;
+        larger.y = (larger.y * larger.mass + smaller.y * smaller.mass) / totalMass;
+        larger.mass = totalMass;
+        if (smaller.type === 'blackhole' || totalMass > 900) larger.type = 'blackhole';
+        larger.radius = larger.type === 'blackhole' ? Math.max(7, Math.sqrt(totalMass) * 1.22) : Math.max(.55, Math.pow(totalMass, .38));
+        smaller.dead = true;
+        flashes.push({ x: larger.x, y: larger.y, life: 1, size: Math.min(110, 20 + Math.sqrt(totalMass) * 2.8), colour: larger.colour });
+        ripples.push({ x: larger.x, y: larger.y, radius: larger.radius, alpha: .72, colour: larger.colour, heavy: larger.type === 'blackhole' });
+      }
+
+      function renderTrails() {
+        trails.globalCompositeOperation = 'source-over';
+        trails.fillStyle = paused ? 'rgba(2, 3, 10, .012)' : 'rgba(2, 3, 10, .067)';
+        trails.fillRect(0, 0, width, height);
+        trails.globalCompositeOperation = 'lighter';
+        trails.lineCap = 'round';
+
+        for (const body of bodies) {
+          if (body.dead || body.age < .2) continue;
+          const speed = Math.hypot(body.vx, body.vy);
+          const alpha = body.type === 'dust' ? Math.min(.28, .06 + speed * .035) : .46;
+          const [r, g, b] = body.colour;
+          trails.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          trails.lineWidth = body.type === 'dust' ? .55 + body.radius * .25 : Math.min(3.5, body.radius * .2);
+          trails.beginPath();
+          trails.moveTo(body.px, body.py);
+          trails.lineTo(body.x, body.y);
+          trails.stroke();
+        }
+        trails.globalCompositeOperation = 'source-over';
+      }
+
+      function drawStar(body) {
+        const [r, g, b] = body.colour;
+        const radius = body.radius;
+        ctx.save();
+        ctx.translate(body.x, body.y);
+        ctx.globalCompositeOperation = 'lighter';
+
+        const auraRadius = Math.min(72, radius * 4.6 + 8);
+        const aura = ctx.createRadialGradient(0, 0, 0, 0, 0, auraRadius);
+        aura.addColorStop(0, `rgba(255, 255, 255, .92)`);
+        aura.addColorStop(.08, `rgba(${r}, ${g}, ${b}, .95)`);
+        aura.addColorStop(.28, `rgba(${r}, ${g}, ${b}, .25)`);
+        aura.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        ctx.fillStyle = aura;
+        ctx.beginPath();
+        ctx.arc(0, 0, auraRadius, 0, TAU);
+        ctx.fill();
+
+        ctx.rotate(body.phase + body.age * .002);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, .11)`;
+        ctx.fillRect(-auraRadius * 1.5, -.45, auraRadius * 3, .9);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillRect(-auraRadius, -.3, auraRadius * 2, .6);
+        ctx.restore();
+      }
+
+      function drawBlackHole(body) {
+        const radius = body.radius;
+        ctx.save();
+        ctx.translate(body.x, body.y);
+        ctx.rotate(body.phase + body.age * .004);
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (let i = 0; i < 3; i++) {
+          const ringRadius = radius * (1.5 + i * .38);
+          ctx.strokeStyle = i === 0 ? 'rgba(255, 196, 126, .78)' : `rgba(${170 + i * 18}, ${100 + i * 24}, 255, ${.32 - i * .06})`;
+          ctx.lineWidth = Math.max(1, radius * (.19 - i * .035));
+          ctx.beginPath();
+          ctx.ellipse(0, 0, ringRadius * 1.7, ringRadius * .42, i * .19, 0, TAU);
+          ctx.stroke();
+        }
+
+        const lens = ctx.createRadialGradient(0, 0, radius * .6, 0, 0, radius * 3.2);
+        lens.addColorStop(0, 'rgba(20, 10, 38, 0)');
+        lens.addColorStop(.44, 'rgba(136, 82, 255, .18)');
+        lens.addColorStop(.62, 'rgba(92, 183, 255, .12)');
+        lens.addColorStop(1, 'rgba(80, 100, 255, 0)');
+        ctx.fillStyle = lens;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 3.2, 0, TAU);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = 'source-over';
+        const eventHorizon = ctx.createRadialGradient(-radius * .22, -radius * .2, 0, 0, 0, radius);
+        eventHorizon.addColorStop(0, '#010106');
+        eventHorizon.addColorStop(.72, '#000');
+        eventHorizon.addColorStop(.9, '#090315');
+        eventHorizon.addColorStop(1, 'rgba(150, 100, 255, .65)');
+        ctx.fillStyle = eventHorizon;
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = '#8e62ff';
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function renderBodies(time) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (const body of bodies) {
+          if (body.dead) continue;
+          if (body.type === 'star') drawStar(body);
+          else if (body.type === 'blackhole') drawBlackHole(body);
+          else {
+            const [r, g, b] = body.colour;
+            const shimmer = .72 + Math.sin(time * .002 + body.phase) * .2;
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${shimmer})`;
+            ctx.shadowBlur = body.radius * 4 + 2;
+            ctx.shadowColor = `rgb(${r}, ${g}, ${b})`;
+            ctx.beginPath();
+            ctx.arc(body.x, body.y, Math.max(.48, body.radius * .63), 0, TAU);
+            ctx.fill();
+          }
+        }
+        ctx.shadowBlur = 0;
+
+        for (let i = flashes.length - 1; i >= 0; i--) {
+          const flash = flashes[i];
+          flash.life -= .024;
+          if (flash.life <= 0) { flashes.splice(i, 1); continue; }
+          const gradient = ctx.createRadialGradient(flash.x, flash.y, 0, flash.x, flash.y, flash.size * (1.3 - flash.life * .3));
+          const [r, g, b] = flash.colour;
+          gradient.addColorStop(0, `rgba(255,255,255,${flash.life * .7})`);
+          gradient.addColorStop(.18, `rgba(${r},${g},${b},${flash.life * .45})`);
+          gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(flash.x, flash.y, flash.size, 0, TAU);
+          ctx.fill();
+        }
+
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const ripple = ripples[i];
+          ripple.radius += ripple.heavy ? 2.8 : 1.8;
+          ripple.alpha *= .965;
+          if (ripple.alpha < .015) { ripples.splice(i, 1); continue; }
+          const [r, g, b] = ripple.colour;
+          ctx.strokeStyle = `rgba(${r},${g},${b},${ripple.alpha})`;
+          ctx.lineWidth = ripple.heavy ? 1.8 : 1;
+          ctx.beginPath();
+          ctx.arc(ripple.x, ripple.y, ripple.radius, 0, TAU);
+          ctx.stroke();
+        }
+
+        if (pointer.active && !pointer.down) {
+          const speed = Math.hypot(pointer.x - pointer.px, pointer.y - pointer.py);
+          ctx.strokeStyle = `rgba(133, 220, 255, ${Math.min(.26, .06 + speed * .018)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(pointer.x, pointer.y, 34 + Math.sin(time * .004) * 3, 0, TAU);
+          ctx.stroke();
+        }
+
+        if (dragStart && pointer.down) drawTrajectoryGuide();
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      function drawTrajectoryGuide() {
+        const dx = pointer.x - dragStart.x;
+        const dy = pointer.y - dragStart.y;
+        const distance = Math.hypot(dx, dy);
+        const endX = dragStart.x + dx;
+        const endY = dragStart.y + dy;
+        const colour = pointer.shift ? '198, 142, 255' : '125, 233, 255';
+
+        ctx.save();
+        ctx.setLineDash([5, 7]);
+        ctx.strokeStyle = `rgba(${colour}, .72)`;
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.moveTo(dragStart.x, dragStart.y);
+        ctx.quadraticCurveTo(dragStart.x + dx * .5, dragStart.y + dy * .5 - Math.min(28, distance * .08), endX, endY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const angle = Math.atan2(dy, dx);
+        ctx.fillStyle = `rgba(${colour}, .9)`;
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - Math.cos(angle - .5) * 10, endY - Math.sin(angle - .5) * 10);
+        ctx.lineTo(endX - Math.cos(angle + .5) * 10, endY - Math.sin(angle + .5) * 10);
+        ctx.closePath();
+        ctx.fill();
+
+        const halo = ctx.createRadialGradient(dragStart.x, dragStart.y, 0, dragStart.x, dragStart.y, pointer.shift ? 34 : 23);
+        halo.addColorStop(0, `rgba(${colour}, .55)`);
+        halo.addColorStop(1, `rgba(${colour}, 0)`);
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(dragStart.x, dragStart.y, pointer.shift ? 34 : 23, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+
+        dragLabel.style.display = 'block';
+        dragLabel.style.left = Math.min(width - 118, endX + 14) + 'px';
+        dragLabel.style.top = Math.max(10, endY - 13) + 'px';
+        dragLabel.textContent = `${pointer.shift ? 'black hole' : 'launch'} · ${(distance * .012).toFixed(1)} v`;
+      }
+
+      function animate(time) {
+        const rawDt = Math.min(2.1, (time - lastTime) / 16.667);
+        lastTime = time;
+        frame++;
+        fpsSmooth = fpsSmooth * .94 + (60 / Math.max(rawDt, .1)) * .06;
+        if (frame % 20 === 0) fpsLabel.textContent = Math.min(99, Math.round(fpsSmooth));
+
+        if (!paused) {
+          const dt = rawDt * simulationSpeed;
+          const steps = dt > 1.35 ? 2 : 1;
+          for (let i = 0; i < steps; i++) calculatePhysics(dt / steps);
+          renderTrails();
+        }
+        renderBodies(time);
+        pointer.px += (pointer.x - pointer.px) * .55;
+        pointer.py += (pointer.y - pointer.py) * .55;
+        requestAnimationFrame(animate);
+      }
+
+      function pointerPosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      }
+
+      canvas.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        const position = pointerPosition(event);
+        pointer.x = pointer.px = position.x;
+        pointer.y = pointer.py = position.y;
+        pointer.down = true;
+        pointer.active = true;
+        pointer.shift = event.shiftKey;
+        dragStart = position;
+        canvas.setPointerCapture(event.pointerId);
+      });
+
+      canvas.addEventListener('pointermove', event => {
+        const position = pointerPosition(event);
+        pointer.x = position.x;
+        pointer.y = position.y;
+        pointer.active = true;
+        pointer.shift = event.shiftKey;
+      });
+
+      canvas.addEventListener('pointerup', event => {
+        if (!dragStart) return;
+        const position = pointerPosition(event);
+        const dx = position.x - dragStart.x;
+        const dy = position.y - dragStart.y;
+        const distance = Math.hypot(dx, dy);
+        const velocityScale = .012;
+        addBody(dragStart.x, dragStart.y, dx * velocityScale, dy * velocityScale, event.shiftKey || pointer.shift);
+        pointer.down = false;
+        dragStart = null;
+        dragLabel.style.display = 'none';
+        if (distance < 3) ripples.push({ x: position.x, y: position.y, radius: 7, alpha: .55, colour: [160, 220, 255], heavy: false });
+      });
+
+      canvas.addEventListener('pointercancel', () => {
+        pointer.down = false;
+        dragStart = null;
+        dragLabel.style.display = 'none';
+      });
+      canvas.addEventListener('pointerleave', () => { if (!pointer.down) pointer.active = false; });
+
+      function setPaused(nextPaused) {
+        paused = nextPaused;
+        pauseButton.textContent = paused ? 'Resume' : 'Pause';
+        pauseButton.setAttribute('aria-pressed', String(paused));
+        stateLabel.textContent = paused ? 'Simulation paused' : 'Simulation live';
+        panel.classList.toggle('paused', paused);
+      }
+
+      pauseButton.addEventListener('click', () => setPaused(!paused));
+      resetButton.addEventListener('click', resetSimulation);
+
+      speedInput.addEventListener('input', () => {
+        simulationSpeed = Number(speedInput.value);
+        speedValue.textContent = simulationSpeed.toFixed(2).replace(/0$/, '') + '×';
+      });
+      gravityInput.addEventListener('input', () => {
+        gravityScale = Number(gravityInput.value);
+        gravityValue.textContent = gravityScale.toFixed(2).replace(/0$/, '') + '×';
+      });
+      densityInput.addEventListener('input', () => {
+        densityValue.textContent = densityInput.value;
+        clearTimeout(densityTimer);
+        densityTimer = setTimeout(resetSimulation, 280);
+      });
+
+      window.addEventListener('keydown', event => {
+        if (event.code === 'Space' && event.target === document.body) {
+          event.preventDefault();
+          setPaused(!paused);
+        }
+        if (event.key.toLowerCase() === 'r' && event.target === document.body) resetSimulation();
+      });
+      window.addEventListener('resize', resize, { passive: true });
+      document.addEventListener('visibilitychange', () => { lastTime = performance.now(); });
+
+      resize();
+      resetSimulation();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

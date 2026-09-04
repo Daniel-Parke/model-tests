@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#02040c">
+  <title>Cosmic Gravity Playground</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eef6ff;
+      --muted: #91a5c4;
+      --edge: rgba(151, 196, 255, .16);
+      --glass: rgba(7, 13, 30, .68);
+      --accent: #66d9ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #010207; }
+    body { font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+    .vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 45%, transparent 36%, rgba(0,0,6,.22) 72%, rgba(0,0,5,.72) 120%); }
+    .panel {
+      position: fixed; top: max(18px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); width: min(350px, calc(100vw - 36px));
+      padding: 19px; border: 1px solid var(--edge); border-radius: 18px;
+      background: linear-gradient(145deg, rgba(12,22,47,.78), var(--glass));
+      box-shadow: 0 18px 55px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.06);
+      backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
+      user-select: none; transition: opacity .25s, transform .25s;
+    }
+    .eyebrow { display: flex; align-items: center; gap: 8px; color: #79dcff; font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    .pulse { width: 7px; height: 7px; border-radius: 50%; background: #68e2ff; box-shadow: 0 0 12px #68e2ff; animation: pulse 2s ease-in-out infinite; }
+    h1 { margin: 7px 0 4px; font: 600 clamp(21px, 3vw, 26px)/1.1 Georgia, "Times New Roman", serif; letter-spacing: -.025em; text-shadow: 0 0 24px rgba(100,200,255,.22); }
+    .instructions { margin: 0 0 15px; color: var(--muted); font-size: 12px; }
+    .instructions b { color: #dcecff; font-weight: 600; }
+    .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+    button {
+      min-height: 38px; border: 1px solid rgba(133,193,255,.18); border-radius: 10px; color: #eaf7ff;
+      background: linear-gradient(180deg, rgba(82,142,205,.17), rgba(37,64,105,.12)); cursor: pointer;
+      font: 600 12px inherit; letter-spacing: .025em; transition: transform .15s, border-color .15s, background .15s;
+    }
+    button:hover { border-color: rgba(117,218,255,.52); background: rgba(72,142,205,.23); transform: translateY(-1px); }
+    button:focus-visible, input:focus-visible { outline: 2px solid #6edaff; outline-offset: 2px; }
+    .control { display: grid; grid-template-columns: 78px 1fr 46px; align-items: center; gap: 9px; min-height: 31px; color: #b4c4db; font-size: 12px; }
+    output { text-align: right; color: #ddecff; font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; height: 3px; appearance: none; border-radius: 4px; background: rgba(139,185,230,.18); accent-color: var(--accent); }
+    input[type="range"]::-webkit-slider-thumb { appearance: none; width: 13px; height: 13px; border: 2px solid #c7f4ff; border-radius: 50%; background: #35bde9; box-shadow: 0 0 10px rgba(64,210,255,.7); }
+    .status { position: fixed; right: 18px; bottom: 16px; color: rgba(186,211,240,.6); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; pointer-events: none; text-shadow: 0 1px 4px #000; }
+    .hint { position: fixed; left: 50%; bottom: 24px; translate: -50% 0; color: rgba(220,240,255,.74); font-size: 12px; letter-spacing: .03em; pointer-events: none; opacity: 0; transition: opacity .4s; text-shadow: 0 1px 8px #000; }
+    .hint.show { opacity: 1; }
+    @keyframes pulse { 50% { opacity: .45; transform: scale(.75); } }
+    @media (max-width: 600px) {
+      .panel { padding: 15px; border-radius: 15px; }
+      .instructions { max-width: 290px; }
+      .status { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="space" aria-label="Interactive gravitational particle simulation"></canvas>
+  <div class="vignette"></div>
+  <section class="panel" aria-label="Simulation controls">
+    <div class="eyebrow"><span class="pulse"></span>Live simulation</div>
+    <h1>Cosmic Gravity Playground</h1>
+    <p class="instructions"><b>Drag</b> to launch a star · <b>Shift + click</b> to seed a black hole · Move nearby to stir space</p>
+    <div class="buttons">
+      <button id="pause" type="button">Pause</button>
+      <button id="reset" type="button">Reset universe</button>
+    </div>
+    <label class="control">Time flow<input id="speed" type="range" min="0.2" max="2" step="0.05" value="1"><output id="speedOut">1.00×</output></label>
+    <label class="control">Gravity<input id="gravity" type="range" min="0.3" max="2.2" step="0.05" value="1"><output id="gravityOut">1.00×</output></label>
+    <label class="control">Density<input id="density" type="range" min="45" max="180" step="5" value="120"><output id="densityOut">120</output></label>
+  </section>
+  <div class="hint" id="hint">Release to ignite</div>
+  <div class="status" id="status">120 bodies · universe age 0.0</div>
+  <script>
+  (() => {
+    'use strict';
+    const canvas = document.querySelector('#space');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const bg = document.createElement('canvas');
+    const bctx = bg.getContext('2d');
+    const ui = document.querySelector('.panel');
+    const hint = document.querySelector('#hint');
+    const status = document.querySelector('#status');
+    const controls = {
+      pause: document.querySelector('#pause'), reset: document.querySelector('#reset'),
+      speed: document.querySelector('#speed'), gravity: document.querySelector('#gravity'), density: document.querySelector('#density'),
+      speedOut: document.querySelector('#speedOut'), gravityOut: document.querySelector('#gravityOut'), densityOut: document.querySelector('#densityOut')
+    };
+    const TAU = Math.PI * 2;
+    const palette = [
+      [112,214,255], [158,131,255], [255,183,106], [255,108,165], [135,255,220], [226,235,255]
+    ];
+    let W = 0, H = 0, dpr = 1, bodies = [], sparks = [], paused = false, universeAge = 0, lastTime = performance.now();
+    let pointer = { x: -9999, y: -9999, px: -9999, py: -9999, down: false, startX: 0, startY: 0, shift: false };
+
+    class Body {
+      constructor(x, y, vx, vy, mass, colour, blackHole = false) {
+        this.x=x; this.y=y; this.px=x-vx; this.py=y-vy; this.vx=vx; this.vy=vy; this.mass=mass;
+        this.colour=colour || palette[(Math.random()*palette.length)|0]; this.blackHole=blackHole;
+        this.radius = blackHole ? 6 + Math.sqrt(mass) * .34 : 1.25 + Math.sqrt(mass) * .22;
+        this.phase = Math.random()*TAU; this.alive = true;
+      }
+    }
+
+    function resize() {
+      W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 1.75);
+      canvas.width = W*dpr; canvas.height = H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      bg.width=W*dpr; bg.height=H*dpr; bctx.setTransform(dpr,0,0,dpr,0,0);
+      makeBackground();
+    }
+
+    function makeBackground() {
+      bctx.fillStyle='#01030a'; bctx.fillRect(0,0,W,H);
+      const nebulae = [
+        [W*.22,H*.68,Math.max(W,H)*.54,'63,35,120'], [W*.76,H*.28,Math.max(W,H)*.48,'10,78,125'],
+        [W*.54,H*.55,Math.max(W,H)*.38,'103,28,85']
+      ];
+      for (const [x,y,r,c] of nebulae) {
+        const g=bctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,`rgba(${c},.14)`); g.addColorStop(.38,`rgba(${c},.055)`); g.addColorStop(1,`rgba(${c},0)`);
+        bctx.fillStyle=g; bctx.fillRect(0,0,W,H);
+      }
+      bctx.globalCompositeOperation='screen';
+      for(let i=0;i<Math.min(850,W*H/1000);i++) {
+        const x=Math.random()*W,y=Math.random()*H,r=Math.random()<.025?Math.random()*1.45+.6:Math.random()*.65+.08;
+        const a=Math.random()*.6+.12; bctx.fillStyle=`rgba(${180+Math.random()*75},${195+Math.random()*55},255,${a})`;
+        bctx.beginPath(); bctx.arc(x,y,r,0,TAU); bctx.fill();
+        if(r>1){ bctx.fillStyle=`rgba(120,190,255,${a*.18})`; bctx.fillRect(x-r*4,y-.35,r*8,.7); }
+      }
+      bctx.globalCompositeOperation='source-over';
+      for(let i=0;i<18;i++) {
+        const x=Math.random()*W,y=Math.random()*H,r=60+Math.random()*180,g=bctx.createRadialGradient(x,y,0,x,y,r);
+        g.addColorStop(0,`rgba(${40+Math.random()*40},${25+Math.random()*50},${90+Math.random()*80},.035)`); g.addColorStop(1,'transparent');
+        bctx.fillStyle=g; bctx.fillRect(x-r,y-r,r*2,r*2);
+      }
+    }
+
+    function addOrbiter(cx,cy,centralMass,r,angle,mass=2,clockwise=1,eccentricity=1) {
+      const x=cx+Math.cos(angle)*r, y=cy+Math.sin(angle)*r*eccentricity;
+      const speed=Math.sqrt(centralMass*.082/Math.max(r,20));
+      bodies.push(new Body(x,y,-Math.sin(angle)*speed*clockwise,Math.cos(angle)*speed*clockwise/eccentricity,mass));
+    }
+
+    function reset() {
+      bodies=[]; sparks=[]; universeAge=0;
+      const count=+controls.density.value, cx=W*.53, cy=H*.53;
+      const core=new Body(cx,cy,-.015,.01,1300,[255,205,132]); bodies.push(core);
+      const rings=Math.max(20,count-16);
+      for(let i=0;i<rings;i++) {
+        const t=i/rings, r=42+Math.pow(t,.68)*Math.min(W,H)*.41+(Math.random()-.5)*20;
+        const a=Math.random()*TAU + r*.011;
+        addOrbiter(cx,cy,core.mass,r,a,.55+Math.random()*3.2,1,.72+Math.random()*.18);
+      }
+      // A compact secondary system enters on a grazing trajectory.
+      const sx=W*.23, sy=H*.32, companion=new Body(sx,sy,.36,.18,260,[125,180,255]); bodies.push(companion);
+      for(let i=0;i<9;i++) addOrbiter(sx,sy,companion.mass,18+i*6,Math.random()*TAU,.7+Math.random()*1.6,i%3?1:-1,.86);
+      // A warm binary partner pulls the main disc off-centre.
+      const binary=new Body(cx+Math.min(W,H)*.18,cy-35,-.08,1.05,185,[255,103,145]); bodies.push(binary);
+      for(let i=0;i<4;i++) addOrbiter(binary.x,binary.y,binary.mass,18+i*7,Math.random()*TAU,1+Math.random(),1,.92);
+      ctx.setTransform(dpr,0,0,dpr,0,0); ctx.drawImage(bg,0,0,W,H);
+    }
+
+    function burst(x,y,colour,count=18,power=2) {
+      for(let i=0;i<count && sparks.length<450;i++) {
+        const a=Math.random()*TAU,s=(.2+Math.random())*power;
+        sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,size:.5+Math.random()*1.8,colour});
+      }
+    }
+
+    function update(dt) {
+      const n=bodies.length, G=.082*(+controls.gravity.value), soft=115;
+      for(let i=0;i<n;i++) {
+        const a=bodies[i]; if(!a.alive) continue;
+        let ax=0,ay=0;
+        for(let j=i+1;j<n;j++) {
+          const b=bodies[j]; if(!b.alive) continue;
+          const dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy+soft,inv=1/Math.sqrt(d2),f=G/d2;
+          ax+=dx*inv*f*b.mass; ay+=dy*inv*f*b.mass;
+          b.vx-=dx*inv*f*a.mass*dt; b.vy-=dy*inv*f*a.mass*dt;
+          const touch=(a.radius+b.radius)*.55;
+          if(d2<touch*touch && (a.mass>7 || b.mass>7)) merge(a,b);
+        }
+        a.vx+=ax*dt; a.vy+=ay*dt;
+      }
+      const cx=W/2,cy=H/2, expansion=.0000024;
+      for(const b of bodies) if(b.alive) {
+        b.px=b.x;b.py=b.y;
+        b.vx+=(b.x-cx)*expansion*dt; b.vy+=(b.y-cy)*expansion*dt;
+        // Pointer creates a gentle local gravity-well and imparts its motion.
+        const mdx=pointer.x-b.x,mdy=pointer.y-b.y,md2=mdx*mdx+mdy*mdy;
+        if(md2<170*170 && !pointer.down) {
+          const influence=(1-Math.sqrt(md2)/170)*.0018*dt;
+          b.vx+=mdx*influence+(pointer.x-pointer.px)*.0007; b.vy+=mdy*influence+(pointer.y-pointer.py)*.0007;
+        }
+        const vmax=b.blackHole?7:5, v=Math.hypot(b.vx,b.vy);
+        if(v>vmax){b.vx*=vmax/v;b.vy*=vmax/v;}
+        b.x+=b.vx*dt;b.y+=b.vy*dt;
+        const margin=260;
+        if(b.x < -margin || b.x > W+margin || b.y < -margin || b.y > H+margin) {
+          if(b.mass<20) b.alive=false;
+          else { b.x=Math.max(-80,Math.min(W+80,b.x)); b.y=Math.max(-80,Math.min(H+80,b.y)); b.vx*=-.4;b.vy*=-.4; }
+        }
+      }
+      bodies=bodies.filter(b=>b.alive);
+      for(const s of sparks){s.x+=s.vx*dt;s.y+=s.vy*dt;s.vx*=.98;s.vy*=.98;s.life-=.018*dt;}
+      sparks=sparks.filter(s=>s.life>0);
+      universeAge+=dt/60;
+    }
+
+    function merge(a,b) {
+      let big=a.mass>=b.mass?a:b, small=big===a?b:a;
+      if(!small.alive || !big.alive) return;
+      const total=big.mass+small.mass;
+      big.vx=(big.vx*big.mass+small.vx*small.mass)/total; big.vy=(big.vy*big.mass+small.vy*small.mass)/total;
+      big.mass=total; big.radius=big.blackHole?6+Math.sqrt(total)*.34:1.25+Math.sqrt(total)*.22;
+      if(total>2400) big.blackHole=true;
+      small.alive=false; burst(small.x,small.y,small.colour,Math.min(34,7+small.mass|0),1.8);
+    }
+
+    function glow(x,y,r,c,alpha=1) {
+      const g=ctx.createRadialGradient(x,y,0,x,y,r*5.5);
+      g.addColorStop(0,`rgba(${c[0]},${c[1]},${c[2]},${.7*alpha})`);
+      g.addColorStop(.16,`rgba(${c[0]},${c[1]},${c[2]},${.22*alpha})`); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*5.5,0,TAU);ctx.fill();
+    }
+
+    function draw(dt) {
+      ctx.globalCompositeOperation='source-over';
+      ctx.globalAlpha=Math.min(.22,.075*dt); ctx.drawImage(bg,0,0,W,H); ctx.globalAlpha=1;
+      ctx.globalCompositeOperation='lighter';
+      // Trails are drawn before bodies so each object writes a luminous history into the fading canvas.
+      ctx.lineCap='round';
+      for(const b of bodies) {
+        const speed=Math.hypot(b.vx,b.vy),c=b.colour;
+        ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${Math.min(.42,.09+speed*.08)})`;
+        ctx.lineWidth=Math.max(.45,Math.min(2.4,b.radius*.18));ctx.beginPath();ctx.moveTo(b.px,b.py);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+      for(const b of bodies) {
+        const c=b.colour,r=b.radius;
+        if(b.blackHole) {
+          glow(b.x,b.y,r*1.5,[120,75,255],.8);
+          ctx.save();ctx.translate(b.x,b.y);ctx.rotate(universeAge*.14+b.phase);ctx.scale(1,.28);
+          const ring=ctx.createRadialGradient(0,0,r*.75,0,0,r*3.8);ring.addColorStop(0,'rgba(0,0,0,0)');ring.addColorStop(.28,'rgba(90,75,255,.45)');ring.addColorStop(.48,'rgba(255,122,64,.95)');ring.addColorStop(.62,'rgba(255,217,155,.28)');ring.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=ring;ctx.beginPath();ctx.arc(0,0,r*3.8,0,TAU);ctx.fill();ctx.restore();
+          ctx.globalCompositeOperation='source-over';ctx.fillStyle='#000108';ctx.beginPath();ctx.arc(b.x,b.y,r*.92,0,TAU);ctx.fill();
+          ctx.strokeStyle='rgba(170,210,255,.6)';ctx.lineWidth=.8;ctx.stroke();ctx.globalCompositeOperation='lighter';
+        } else {
+          glow(b.x,b.y,r,c,Math.min(1, .5+b.mass/100));
+          const g=ctx.createRadialGradient(b.x-r*.25,b.y-r*.3,0,b.x,b.y,r*1.25);
+          g.addColorStop(0,'rgba(255,255,255,.98)');g.addColorStop(.2,`rgb(${c[0]},${c[1]},${c[2]})`);g.addColorStop(1,`rgba(${c[0]},${c[1]},${c[2]},0)`);
+          ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,r*1.3,0,TAU);ctx.fill();
+          if(r>5){ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},.18)`;ctx.fillRect(b.x-r*3.6,b.y-.35,r*7.2,.7);}
+        }
+      }
+      for(const s of sparks){ctx.fillStyle=`rgba(${s.colour.join(',')},${s.life})`;ctx.beginPath();ctx.arc(s.x,s.y,s.size*s.life,0,TAU);ctx.fill();}
+      if(pointer.down) drawLauncher();
+      ctx.globalCompositeOperation='source-over';
+    }
+
+    function drawLauncher() {
+      const dx=pointer.x-pointer.startX,dy=pointer.y-pointer.startY,len=Math.hypot(dx,dy);
+      ctx.save();ctx.setLineDash([4,7]);ctx.lineWidth=1;ctx.strokeStyle=pointer.shift?'rgba(255,125,218,.8)':'rgba(120,225,255,.8)';
+      ctx.beginPath();ctx.moveTo(pointer.startX,pointer.startY);ctx.lineTo(pointer.x,pointer.y);ctx.stroke();ctx.setLineDash([]);
+      const c=pointer.shift?[218,82,255]:palette[((len/45)|0)%palette.length];glow(pointer.startX,pointer.startY,3+Math.min(8,len/28),c,.9);
+      ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(pointer.startX,pointer.startY,2.4,0,TAU);ctx.fill();ctx.restore();
+    }
+
+    function animate(now) {
+      const raw=Math.min(2,(now-lastTime)/16.6667);lastTime=now;
+      const dt=raw*(+controls.speed.value);
+      if(!paused) update(dt);
+      draw(dt || .6);
+      pointer.px=pointer.x;pointer.py=pointer.y;
+      if((now|0)%12===0) status.textContent=`${bodies.length} bodies · universe age ${universeAge.toFixed(1)}`;
+      requestAnimationFrame(animate);
+    }
+
+    function position(e){ const r=canvas.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}; }
+    canvas.addEventListener('pointerdown',e=>{
+      if(e.button!==0)return; const p=position(e);pointer={...pointer,...p,px:p.x,py:p.y,down:true,startX:p.x,startY:p.y,shift:e.shiftKey};
+      canvas.setPointerCapture(e.pointerId);hint.textContent=e.shiftKey?'Release to collapse spacetime':'Release to ignite';hint.classList.add('show');
+    });
+    canvas.addEventListener('pointermove',e=>{const p=position(e);pointer.x=p.x;pointer.y=p.y;});
+    canvas.addEventListener('pointerleave',()=>{if(!pointer.down){pointer.x=-9999;pointer.y=-9999;}});
+    canvas.addEventListener('pointerup',e=>{
+      if(!pointer.down)return;const p=position(e),dx=p.x-pointer.startX,dy=p.y-pointer.startY,len=Math.hypot(dx,dy),isHole=pointer.shift||e.shiftKey;
+      const mass=isHole?1050:Math.min(85,18+len*.28),vx=-dx*.012,vy=-dy*.012,c=isHole?[174,75,255]:palette[(Math.random()*palette.length)|0];
+      bodies.push(new Body(pointer.startX,pointer.startY,vx,vy,mass,c,isHole));burst(pointer.startX,pointer.startY,c,isHole?42:20,isHole?3:1.5);
+      pointer.down=false;hint.classList.remove('show');
+    });
+    canvas.addEventListener('contextmenu',e=>e.preventDefault());
+    controls.pause.addEventListener('click',()=>{paused=!paused;controls.pause.textContent=paused?'Resume':'Pause';document.querySelector('.pulse').style.background=paused?'#ffb25f':'#68e2ff';});
+    controls.reset.addEventListener('click',()=>{reset();paused=false;controls.pause.textContent='Pause';});
+    controls.speed.addEventListener('input',()=>controls.speedOut.value=(+controls.speed.value).toFixed(2)+'×');
+    controls.gravity.addEventListener('input',()=>controls.gravityOut.value=(+controls.gravity.value).toFixed(2)+'×');
+    controls.density.addEventListener('input',()=>controls.densityOut.value=controls.density.value);
+    controls.density.addEventListener('change',reset);
+    addEventListener('keydown',e=>{if(e.code==='Space'&&!/INPUT|BUTTON/.test(document.activeElement.tagName)){e.preventDefault();controls.pause.click();}if(e.key.toLowerCase()==='r')reset();});
+    addEventListener('resize',()=>{resize();reset();},{passive:true});
+    ui.addEventListener('pointerdown',e=>e.stopPropagation());
+    resize();reset();requestAnimationFrame(animate);
+  })();
+  </script>
+</body>
+</html>
