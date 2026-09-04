@@ -4,6 +4,8 @@ Small practical comparisons of AI-generated outputs. These are examples to explo
 
 ## Cosmic Gravity
 
+[Read the full original prompt](HTML%20-%20Space/prompt.md).
+
 The same brief asked Astra and Sol, each at Light and Medium effort, to create an interactive cosmology-themed gravity simulation in one self-contained HTML file.
 
 [Open the comparison page](https://daniel-parke.github.io/model-tests/).
@@ -20,3 +22,7 @@ The four simulation files are preserved as supplied for publication. Each can al
 These are animated visual toys, not validated scientific models. This comparison does not establish general model quality, performance or cost rankings.
 
 Published with GitHub Pages. No installation or build step is required.
+
+## Future tests
+
+Add each test in its own folder, with its original prompt and clearly labelled outputs. Extend the landing page and keep published simulation paths stable.
