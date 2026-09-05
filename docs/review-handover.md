@@ -130,3 +130,7 @@ The user authorised commit and push after the visual review. Commit fc5de6b was 
 The catalogue and generated result tables were then updated to Published. Media-pack uploads, social posts, GitHub About/topics and the uploaded repository social preview were not changed. The full media pack remains local and ignored by Git.
 
 The initial hosted Linux validation timed out in the unchanged Sol Ultra canvas. CI now uses Windows and full Chromium, matching local validation. All browser assertions remain enabled; original artefacts are unchanged.
+
+The Windows checkout first exposed generated-file line-ending differences. Commit d80edd7 pins the five generated text targets to LF while retaining no-conversion rules for originals. A fresh clone with core.autocrlf enabled passed all 11 integrity/catalogue tests, 43 browser checks and 30 rapid viewer cycles.
+
+Hosted Windows validation subsequently passed installation and integrity checks but timed out at Sol Ultra's canvas readiness check, as the Linux runner had. [Hosted run 33939743236](https://github.com/Daniel-Parke/model-tests/actions/runs/33939743236) records the unresolved hosted-browser limitation. Pages deployment succeeded independently. This is not a green hosted browser suite, and no change was made to the frozen result or to the test assertions to conceal the failure.
