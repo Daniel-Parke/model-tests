@@ -1,42 +1,42 @@
-# Cosmic Gravity: test 01
+# Cosmic Gravity: experiment 01
 
-## Start here
+[Explore the results](../#results) · [Read the canonical prompt](prompt.md) · [Methodology](../docs/methodology.md)
 
-This folder contains the original brief, complete run prompts, and the simulation outputs. The canonical repository is `C:\Users\Daniel\Documents\Coding\Github\Model Tests`. Read [../AGENTS.md](../AGENTS.md) before editing shared files.
-
-- [prompt.md](prompt.md): the single canonical prompt. It contains the original brief verbatim followed by Daniel's short naming paragraph. The stored example uses Sol-High; the landing-page selector changes only the model and effort label.
-
-Do not create separate prompt files per model or effort level, or append workflow instructions. Keep repository guidance separate. The first four runs used the original brief without the naming paragraph; the original version remains in Git history. Both High runs used the same closing paragraph with their respective labels.
+Create a visually compelling interactive gravity simulation in one self-contained HTML file. These are the original delivered outputs, with presentation and capture work kept outside this folder.
 
 ## Results
 
-| Model | Effort | File | Prompt | Publication | Validation evidence |
-| --- | --- | --- | --- | --- | --- |
-| Astra | Light | [HTML](cosmic-gravity-astra-light.html) | Original brief¹ | Published | JavaScript syntax; live HTTP and source match checked during initial publication |
-| Astra | Medium | [HTML](cosmic-gravity-astra-medium.html) | Original brief¹ | Published | JavaScript syntax; physics/control checks; live HTTP and source match checked during initial publication |
-| Sol | Light | [HTML](cosmic-gravity-playground-sol-light.html) | Original brief¹ | Published | JavaScript syntax; live HTTP and source match checked during initial publication |
-| Sol | Medium | [HTML](cosmic-gravity-playground-sol-medium.html) | Original brief¹ | Published | JavaScript syntax; live HTTP and source match checked during initial publication |
-| Astra | High | [HTML](cosmic-gravity-astra-high.html) | [Canonical](prompt.md) | Included in this release | JavaScript syntax and self-containment; 15 Node checks with mocked DOM/Canvas covering physics, controls and stability; initial browser validation blocked by local-file URL policy; subsequent desktop rendering check passed via local preview (frame rate not benchmarked) |
-| Sol | High | [HTML](cosmic-gravity-sol-high.html) | [Canonical](prompt.md) | Included in this release | JavaScript syntax and self-containment checks; subsequent desktop rendering check passed via local preview |
+<!-- RESULTS:START -->
 
-¹ The first four runs used the brief before the naming paragraph was appended. The original is retained in commit `68581b9`.
+| Model | Effort | Original HTML | Publication |
+| --- | --- | --- | --- |
+| Astra | Light | [Open](cosmic-gravity-astra-light.html) | Published |
+| Sol | Light | [Open](cosmic-gravity-playground-sol-light.html) | Published |
+| Astra | Medium | [Open](cosmic-gravity-astra-medium.html) | Published |
+| Sol | Medium | [Open](cosmic-gravity-playground-sol-medium.html) | Published |
+| Astra | High | [Open](cosmic-gravity-astra-high.html) | Published |
+| Sol | High | [Open](cosmic-gravity-sol-high.html) | Published |
+| Astra | Extra High | [Open](cosmic-gravity-astra-extra-high.html) | Prepared locally |
+| Sol | Extra High | [Open](cosmic-gravity-sol-extra-high.html) | Prepared locally |
+| Astra | Ultra | [Open](cosmic-gravity-astra-ultra.html) | Prepared locally |
+| Sol | Ultra | [Open](cosmic-gravity-sol-ultra.html) | Prepared locally |
 
-Publication checks above describe the initial upload, not continuous monitoring or a visual acceptance test. Record only evidence actually observed for each new output.
+<!-- RESULTS:END -->
 
-## Naming and locations
+## Prompt provenance
 
-New results use `cosmic-gravity-{model}-{effort}.html`. All names are lowercase. Preserve the existing Sol Light and Medium filenames containing `playground`: those URLs are already public. Do not rename them for consistency.
+The first four runs, Astra and Sol at Light and Medium, used the original brief without the naming paragraph. That brief remains in Git commit 68581b9. Later runs use the canonical prompt with only the model and effort label changed in its closing paragraph.
 
-If a result already exists, use the next unused `-run-02`, `-run-03`, etc. suffix before `.html`. Keep every result and record repeat runs as separate table rows. Never create empty HTML files for planned runs.
+The result browser distinguishes the historical prompt from the prompt for a new run. There is one canonical prompt.md; model-specific prompt files are not maintained here. The catalogue records each variant and every original file's SHA-256 hash.
 
-Keep these outputs and prompts here, not in the repository root or the older ChatGPT folder. Root `index.html` is the shared landing page. Root `README.md` is the suite overview. Temporary screenshots or validation files should stay outside the tracked test folder unless deliberately retained as evidence.
+## File integrity
 
-## Completing a run
+Keep all existing filenames and public paths, including the older Sol names containing playground. New filenames use cosmic-gravity-{model}-{effort}.html. Repeated runs use an unused -run-02, -run-03 or later suffix. Never overwrite an earlier output.
 
-Use the complete run prompt without adding further instructions. The following is repository maintenance guidance, not prompt content. Replace a pending row only after its output exists; add a new row for a repeat run. Record checks and whether the output is local or published. Add only the corresponding link/card to the shared overview and landing page, and revise any now-stale counts. Re-read shared files before saving.
+The six published Git blobs are the preservation baseline. Four additional local outputs are frozen before presentation work. A historical Astra High working-copy line-ending difference was archived and reconciled to its published blob. No simulation logic was changed.
 
-Daniel authorised this release. For later work, publish only when requested, and verify the live links after deployment.
+## Evidence
 
-## Landing-page refresh validation, 4 September 2026
+The homepage now includes the effort-pair comparison directly below its featured preview. The presentation update passed 43 browser checks and 172 local-link checks; all original hashes still match. See the review handover for the current landing-page performance profile.
 
-All six simulation files retain their pre-refresh SHA-256 hashes. The six result links and all prompt/asset links return HTTP 200 in the local preview. PatterTech and GitHub external links also return HTTP 200. The redesigned page was inspected at desktop size and a 390 px mobile viewport; no horizontal document overflow was observed on mobile. Prompt selection and copying were exercised in the browser. All six model/effort combinations were checked against the unchanged base prompt plus the agreed naming paragraph. Key text contrast pairs exceed 4.5:1. Both High simulations rendered through their landing-page links. These are local checks, not evidence that the new pages have been published.
+See [validation](../docs/validation.md) for the distinction between historical checks and the current publication review. Test evidence does not establish scientific accuracy or a cross-device performance ranking.

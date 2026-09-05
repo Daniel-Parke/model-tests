@@ -1,0 +1,18 @@
+[
+  {
+    "family": "Space Grotesk",
+    "file": "spacegrotesk.woff2",
+    "source": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
+    "licence": "spacegrotesk-OFL.txt",
+    "bytes": 22288,
+    "subset": "Latin; variable weights 400 to 700"
+  },
+  {
+    "family": "Inter",
+    "file": "inter.woff2",
+    "source": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    "licence": "inter-OFL.txt",
+    "bytes": 48256,
+    "subset": "Latin; variable weights 400 to 700"
+  }
+]

@@ -1,2 +1,5 @@
-# Local recovery copies and validation artefacts; never publish.
 .local-archive/
+.local/
+node_modules/
+.media/
+.tool-cache/

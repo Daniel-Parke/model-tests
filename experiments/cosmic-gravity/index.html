@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" class="no-js"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05080d"><title>Cosmic Gravity: prompt and methodology | PatterTech</title><meta name="description" content="Explore original AI model outputs. Ten Cosmic Gravity simulations, their prompts and the details behind each run."><meta property="og:title" content="Cosmic Gravity: prompt and methodology | PatterTech"><meta property="og:description" content="Open the demos. Compare the decisions. Read the original prompt."><meta property="og:type" content="website"><meta property="og:url" content="https://daniel-parke.github.io/model-tests/experiments/cosmic-gravity/"><meta property="og:image" content="https://daniel-parke.github.io/model-tests/assets/pattertech-model-tests-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="PatterTech Model Tests: a real Cosmic Gravity simulation, with ten outputs from Astra and Sol."><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://daniel-parke.github.io/model-tests/experiments/cosmic-gravity/"><link rel="icon" href="../../assets/pattertech-mark.svg"><link rel="preload" href="../../assets/fonts/spacegrotesk.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="../../assets/site.css"><script src="../../assets/catalogue.js" defer></script><script src="../../assets/site.js" defer></script></head><body data-page="context" data-prefix="../../"><a class="skip" href="#main">Skip to content</a><header class="header wrap"><a class="brand" href="../../" aria-label="PatterTech Model Tests home"><img src="../../assets/pattertech-mark.svg" alt="" width="34" height="34"><span><b>Patter</b>Tech</span></a><nav class="nav" aria-label="Main"><a href="../../#results">Compare</a><a class="desktop-link" href="../../experiments/cosmic-gravity/#method">How we test</a><a href="https://github.com/Daniel-Parke/model-tests">GitHub ↗</a></nav></header>
+<main id="main" class="wrap" data-experiment="cosmic-gravity"><div class="breadcrumb"><a href="../../">Model Tests</a> / Experiment 01</div><div class="experiment-intro"><div><div class="eyebrow">Cosmic Gravity</div><h1>Prompt &amp; methodology</h1></div><p>Read the brief, check the historical context and prepare a new run.</p></div><a class="button secondary" id="results" href="../../#results">← Compare all ten results</a>
+<section class="section editorial" id="method"><div><div class="eyebrow">How to read this</div><h2>Compare the decisions.<br>Keep the context.</h2></div><div><p>Both models received the same simulation brief. Effort labels identify the requested setting; they do not establish a score or a guaranteed improvement.</p><p>These are historical agent runs. Tool access, working context and interventions were not fully recorded. The first four used the original brief; later runs added the same short naming paragraph with a different model label.</p><p>We preserve the delivered HTML. Site improvements and recordings are made separately. Astra Ultra is featured for exploration, not as a measured winner.</p><a class="text-link" href="https://github.com/Daniel-Parke/model-tests/blob/main/docs/methodology.md">Methodology and future run protocol →</a><br><a class="text-link" href="https://github.com/Daniel-Parke/model-tests/blob/main/docs/validation.md">Validation evidence and limitations →</a></div></section>
+<section class="section" id="prompt"><div class="section-head"><div><div class="eyebrow">The original brief</div><h2>Read it. Reuse it.</h2></div><p>Choose a result to see the prompt variant it used. A new run adds the agreed naming paragraph, even for Light and Medium.</p></div><div class="prompt-toolbar js-only"><label for="prompt-run">Result</label><select id="prompt-run"><option value="astra-light" >Astra / Light</option><option value="sol-light" >Sol / Light</option><option value="astra-medium" >Astra / Medium</option><option value="sol-medium" >Sol / Medium</option><option value="astra-high" >Astra / High</option><option value="sol-high" >Sol / High</option><option value="astra-extra-high" >Astra / Extra High</option><option value="sol-extra-high" >Sol / Extra High</option><option value="astra-ultra" selected>Astra / Ultra</option><option value="sol-ultra" >Sol / Ultra</option></select><label for="prompt-mode">Version</label><select id="prompt-mode"><option value="historical">Used for this result</option><option value="new">Prepare a new run</option></select><button id="copy-prompt">Copy prompt</button><span id="copy-status" role="status"></span></div><p class="notice" id="prompt-context">Astra Ultra used the original brief plus the naming paragraph.</p><details id="prompt-details" open><summary>Full prompt</summary><pre class="prompt-copy" id="prompt-text">Create a **single self-contained HTML file** with all CSS and JavaScript inline that produces a visually impressive, interactive cosmology-themed physics simulation.
+
+The goal is to create something that looks immediately impressive, feels alive within seconds of loading, and is genuinely fun to interact with.
+
+## Core simulation
+
+Use an HTML5 `&lt;canvas&gt;` that fills most or all of the viewport.
+
+Simulate a simplified **N-body gravitational system** containing glowing stars, particles, or proto-galaxies.
+
+Objects should:
+
+- Move continuously through space.
+- Attract one another using simplified inverse-square gravity.
+- Have different masses.
+- Produce visible gravitational interactions and orbital behaviour.
+- Leave soft luminous trails behind them.
+- Occasionally create interesting emergent structures such as orbits, clusters, slingshots, collisions, or chaotic systems.
+
+Scientific perfection is not required. Prioritise visually convincing behaviour, stability, and fun interaction.
+
+## Expanding universe
+
+Add a subtle **cosmic expansion effect**.
+
+Objects should have a very small outward drift roughly proportional to their distance from the centre, creating the impression of an expanding universe.
+
+Keep this subtle enough that gravity can still produce local structures.
+
+## Interaction
+
+Make the simulation highly interactive.
+
+The user should be able to:
+
+- Click to create a new massive object.
+- Click-and-drag to create an object with an initial velocity based on the drag direction and distance.
+- Use the mouse to gently perturb nearby particles.
+- Create especially massive black-hole-like attractors using a modifier such as Shift + click.
+
+Make these interactions visually satisfying.
+
+For example, show a temporary trajectory or velocity indicator while dragging.
+
+## Visual design
+
+The visual quality is extremely important.
+
+Aim for a cinematic scientific-visualisation aesthetic rather than a basic coding demo.
+
+Use:
+
+- Deep black and dark-blue space tones.
+- Hundreds of subtle background stars.
+- A faint procedural nebula, dust, or cosmic background effect.
+- Vibrant glowing stars and particles.
+- Soft bloom-like lighting.
+- Particle trails.
+- Additive-looking light effects where appropriate.
+- Smooth transitions and animations.
+- Subtle depth and parallax if useful.
+
+Massive objects should feel visually different from ordinary particles.
+
+Black-hole-like objects could have effects such as:
+
+- A dark central region.
+- Bright accretion glow.
+- Distorted or curved-looking nearby trails.
+- Increased gravitational influence.
+
+Do not use external images or assets.
+
+## Interface
+
+Add a small elegant translucent UI panel.
+
+Title:
+
+**Cosmic Gravity Playground**
+
+Include a short instruction explaining the main controls.
+
+Also include:
+
+- Pause / Resume
+- Reset
+- Simulation speed control
+- Gravity strength control
+- Particle count or density control
+
+Keep the interface minimal so it does not obscure the simulation.
+
+## Initial state
+
+Do not start with completely random noise.
+
+Create an interesting initial configuration that immediately demonstrates the simulation.
+
+For example:
+
+- A central massive star or galactic core.
+- Several orbiting bodies.
+- A cloud of smaller particles.
+- One or two secondary gravitational systems.
+
+The scene should already look interesting before the user touches anything.
+
+## Performance
+
+Target smooth animation at approximately 60 fps on a modern desktop browser.
+
+Use sensible optimisation techniques where necessary.
+
+Avoid allowing the simulation to become unstable because of extremely small distances or infinite gravitational forces.
+
+## Constraints
+
+Use only:
+
+- HTML
+- CSS
+- Vanilla JavaScript
+- HTML5 Canvas
+
+No external libraries.
+
+No build tools.
+
+No external assets.
+
+Everything must exist inside **one HTML file** that can be saved and opened directly in a browser.
+
+## Priorities
+
+In order of importance:
+
+1. Visual impact
+2. Immediate “wow” factor
+3. Smooth animation
+4. Interesting emergent behaviour
+5. Interaction quality
+6. UI polish
+7. Reasonably convincing physics
+8. Code quality
+
+Do not spend excessive effort building menus, documentation, or unnecessary application architecture.
+
+The result should feel more like an **interactive digital artwork / scientific toy** than a traditional web application.
+
+Make sensible creative decisions yourself.
+
+Return the **complete working HTML file** with no omitted sections, pseudocode, placeholders, or TODOs.
+
+
+You are Astra-Ultra and should name the file accordingly, as this part of a model test suite we have published. As such ensure you also update the documentation accordingly, but only adding minimal changes to reflect the new output.
+</pre></details><a class="text-link" href="../../HTML%20-%20Space/prompt.md">Open canonical prompt file →</a></section></main><dialog class="viewer" id="viewer" aria-labelledby="viewer-title"><div class="viewer-inner"><div class="viewer-toolbar"><h2 id="viewer-title">Cosmic Gravity</h2><div class="viewer-switch" role="group" aria-label="Switch model"><button data-switch="Astra">Astra</button><button data-switch="Sol">Sol</button></div><div class="actions"><a id="viewer-original" class="button" target="_blank" rel="noopener">Open original ↗</a><button id="viewer-restart">Restart</button><button class="viewer-close" id="viewer-close" autofocus>Close</button></div></div><p class="viewer-note">Original output. Switching models or closing this viewer restarts the simulation. Use Tab to reach the host controls.</p><div class="frame-slot" id="frame-slot"></div><button id="viewer-exit" class="viewer-exit">Return to results</button></div></dialog><dialog class="viewer source-dialog" id="source-dialog" aria-labelledby="source-title"><div class="viewer-toolbar"><h2 id="source-title">Original HTML source</h2><button id="source-close" autofocus>Close</button></div><pre class="source-copy" id="source-content"></pre></dialog><footer class="footer wrap"><p>A PatterTech project. Made to be explored.</p><div class="actions"><a href="../../experiments/cosmic-gravity/#method">Methodology</a><a href="https://github.com/Daniel-Parke/model-tests/blob/main/LICENSE">MIT licence</a><a href="https://github.com/Daniel-Parke/model-tests">Source ↗</a></div></footer><div class="sr-only" id="announcement" role="status" aria-live="polite"></div></body></html>

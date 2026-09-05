@@ -1,0 +1,28 @@
+name: Demo problem
+description: Report a problem with an original output or its presentation.
+title: "Demo: "
+body:
+  - type: input
+    id: result
+    attributes:
+      label: Result or page URL
+      description: Include the model and effort level.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps, expected behaviour and actual behaviour
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser, operating system and device
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshot or console error
+      description: Remove personal information before attaching evidence.

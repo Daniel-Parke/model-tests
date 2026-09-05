@@ -2,14 +2,17 @@
 
 ## Repository and navigation
 
-The canonical repository is `C:\Users\Daniel\Documents\Coding\Github\Model Tests`. The old `C:\Users\Daniel\Documents\ChatGPT\Model Test - HTML Space` folder is a scratch/source location, not the publication repository. Do not initialise another repository or publish from that folder.
+The repository containing this file is the publication source. The former ChatGPT workspace is retired; its unique evidence is retained in an ignored archive. Do not initialise another publication repository in a scratch folder.
 
 Read this file, the root README, and the selected test's README before making changes.
 
-- `index.html`: shared GitHub Pages landing page. Never put a model's simulation here.
+- `index.html`: generated GitHub Pages landing page. Edit `tools/generate.cjs`, not generated HTML. Never put a model's simulation here.
 - `README.md`: suite overview and result links.
 - `HTML - Space/`: Cosmic Gravity test 01, including the canonical prompt, result register and standalone HTML outputs.
 - `.nojekyll`: preserves direct static-file hosting.
+- `catalogue.json`: original hashes, prompt variants, provenance and publication state.
+- `assets/site.css` and `assets/site.js`: shared presentation, separate from outputs.
+- `docs/maintenance.md` and `docs/media.md`: verification and publication tooling.
 
 ## Scope and result integrity
 
@@ -37,4 +40,4 @@ Remote: `https://github.com/Daniel-Parke/model-tests`.
 Site: `https://daniel-parke.github.io/model-tests/`.
 GitHub Pages currently publishes the root of `main`. Pushing to `main` can publish changes.
 
-Daniel authorised publication of the six-result branded page and prompt consolidation. For subsequent batches, commit and publish only when the user requests it. Review the diff, stage only intended paths, deploy, and verify each affected live URL.
+The user authorised committing and pushing the reviewed ten-result refresh on 5 September 2026. This includes the existing Pages publication triggered by pushing main. Media-pack uploads, social posts and GitHub settings changes still require separate authorisation. For subsequent changes, commit or publish only when requested. Review the diff, stage only intended paths and verify affected live URLs after an authorised publication.

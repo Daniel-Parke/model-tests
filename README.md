@@ -1,58 +1,56 @@
 # Model Tests
 
-Small practical comparisons of AI-generated outputs. These are examples to explore, not formal benchmarks.
+Open the demos, compare the decisions and read the original prompts. These are practical examples of AI-generated work from PatterTech, not formal benchmarks.
 
-## Navigation
+**[Explore the public site](https://daniel-parke.github.io/model-tests/)** · [Prompt and methodology](experiments/cosmic-gravity/) · [Original prompt](HTML%20-%20Space/prompt.md)
 
-- [Agent instructions](AGENTS.md): repository boundaries, shared editing and publication rules.
-- [Cosmic Gravity test guide](HTML%20-%20Space/README.md): prompts, filenames, result status and validation.
-- [Canonical prompt](HTML%20-%20Space/prompt.md): one prompt for every model and effort level; change only the naming label.
-
-The canonical local repository is `C:\Users\Daniel\Documents\Coding\Github\Model Tests`. Save Cosmic Gravity outputs in its `HTML - Space` folder. The older ChatGPT working folder is not the publication source.
+![A real Cosmic Gravity scene, featured in PatterTech Model Tests](assets/pattertech-model-tests-card.png)
 
 ## Cosmic Gravity
 
-[Read the canonical prompt](HTML%20-%20Space/prompt.md).
+The task: create an interactive gravity simulation inside one self-contained HTML file. Astra and Sol each have five effort levels to explore. Download any original HTML file and open it in your browser. No installation is needed.
 
-The first four published results used the original brief with Astra and Sol, each at Light and Medium effort, to create an interactive cosmology-themed gravity simulation in one self-contained HTML file.
+<!-- RESULTS:START -->
 
-[Open the comparison page](https://daniel-parke.github.io/model-tests/).
+| Model | Effort | Original HTML | Publication |
+| --- | --- | --- | --- |
+| Astra | Light | [Open](HTML%20-%20Space/cosmic-gravity-astra-light.html) | Published |
+| Sol | Light | [Open](HTML%20-%20Space/cosmic-gravity-playground-sol-light.html) | Published |
+| Astra | Medium | [Open](HTML%20-%20Space/cosmic-gravity-astra-medium.html) | Published |
+| Sol | Medium | [Open](HTML%20-%20Space/cosmic-gravity-playground-sol-medium.html) | Published |
+| Astra | High | [Open](HTML%20-%20Space/cosmic-gravity-astra-high.html) | Published |
+| Sol | High | [Open](HTML%20-%20Space/cosmic-gravity-sol-high.html) | Published |
+| Astra | Extra High | [Open](HTML%20-%20Space/cosmic-gravity-astra-extra-high.html) | Prepared locally |
+| Sol | Extra High | [Open](HTML%20-%20Space/cosmic-gravity-sol-extra-high.html) | Prepared locally |
+| Astra | Ultra | [Open](HTML%20-%20Space/cosmic-gravity-astra-ultra.html) | Prepared locally |
+| Sol | Ultra | [Open](HTML%20-%20Space/cosmic-gravity-sol-ultra.html) | Prepared locally |
 
-| Model | Effort | Simulation |
-| --- | --- | --- |
-| Astra | Light | [Open](https://daniel-parke.github.io/model-tests/HTML%20-%20Space/cosmic-gravity-astra-light.html) |
-| Astra | Medium | [Open](https://daniel-parke.github.io/model-tests/HTML%20-%20Space/cosmic-gravity-astra-medium.html) |
-| Sol | Light | [Open](https://daniel-parke.github.io/model-tests/HTML%20-%20Space/cosmic-gravity-playground-sol-light.html) |
-| Sol | Medium | [Open](https://daniel-parke.github.io/model-tests/HTML%20-%20Space/cosmic-gravity-playground-sol-medium.html) |
-| Astra | High | [Open](https://daniel-parke.github.io/model-tests/HTML%20-%20Space/cosmic-gravity-astra-high.html) |
-| Sol | High | [Open](https://daniel-parke.github.io/model-tests/HTML%20-%20Space/cosmic-gravity-sol-high.html) |
+<!-- RESULTS:END -->
 
-This release includes all six results. There is one canonical prompt: the original brief plus Daniel’s short naming paragraph. Only the model and effort label changes. The first four runs predate that naming paragraph; their original prompt remains in Git history.
+Publication status is recorded in [the catalogue](catalogue.json). On 5 September 2026, six outputs are published and four are prepared locally. The redesigned site and publication pack are awaiting review. Local availability does not imply publication.
 
-All six simulation files are preserved as supplied. Each can also be downloaded and opened directly in a browser. The landing page is separate from the model outputs.
+## What the comparison means
 
-These are animated visual toys, not validated scientific models. This comparison does not establish general model quality, performance or cost rankings.
+The original simulation brief stays the same. The earliest four runs predate a short naming paragraph added for later runs. Historical tool access, context and interventions were not fully recorded. These examples do not establish general quality, speed or cost rankings.
 
-Published with GitHub Pages. No installation or build step is required.
+We preserve the delivered files. Screenshots, recordings, website improvements and commentary are produced separately. Astra Ultra is featured as an editorial choice.
 
-## Future tests
+- [Methodology and future runs](docs/methodology.md)
+- [Validation evidence and limitations](docs/validation.md)
+- [Current review handover](docs/review-handover.md)
+- [Contributing an experiment or reporting a problem](CONTRIBUTING.md)
+- [Local preview, maintenance and publication](docs/maintenance.md)
+- [Reusable media tools and export profiles](docs/media.md)
+- [Prepared GitHub and social content](docs/publication.md)
 
-Add each test in its own descriptive folder, with one canonical `prompt.md`, a README containing its result register and naming convention, and clearly labelled outputs. Register the next test number here and on the landing page once results exist. Keep published simulation paths stable.
+## Local preview
 
-## Landing page and branding
+With Node.js 22 or later:
 
-The landing page groups six results by model and effort, with accessible result links and a prompt selector/copy control. Selecting a model or effort changes only the naming label in the closing paragraph. No simulation or prompt requirements are changed.
+    node tools/serve.cjs
 
-Colours and the orbital brand mark follow `PatterTech_Website/docs/DESIGN_SYSTEM.md` and its brand components. The favicon is copied from that repository. See [assets/README.md](assets/README.md) for provenance.
+Open the local address printed in the terminal. The site is ordinary static HTML, CSS and JavaScript. Maintenance tools do not add a visitor-side build step.
 
-## Workspace housekeeping
+## Reuse
 
-All current project outputs belong here. The old ChatGPT task folder is not a second source of truth. Historical scratch files are retained in the ignored `.local-archive/` folder after hash verification. They are recovery material, not site content. Do not stage or publish that folder. The old files have not been deleted: automatic approval review required explicit permission for their removal. The current task also remains attached to the old directory. Start future tasks in the canonical GitHub project.
-
-## Validation
-
-All six local simulation links and prompt/asset links pass HTTP checks. Both High pages render. The landing page was checked on desktop and mobile, including prompt selection and copying. All simulation hashes remain unchanged. Detailed evidence is in the [test guide](HTML%20-%20Space/README.md#landing-page-refresh-validation-4-september-2026).
-
-## Publication
-
-GitHub Pages serves the root of `main`. This release contains the branded landing page, all six results and one canonical prompt. Commit and push later changes only when Daniel authorises publication, then verify the affected live links.
+Code, demos and associated documentation use the [MIT licence](LICENSE). [Branding and third-party assets](THIRD_PARTY_NOTICES.md) have separate terms. Attribution is appreciated; do not imply that a modified version is an official PatterTech release.

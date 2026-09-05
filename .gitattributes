@@ -1,0 +1,3 @@
+# Frozen model artefacts must never undergo line-ending conversion.
+"HTML - Space/*.html" -text
+"HTML - Space/prompt.md" -text

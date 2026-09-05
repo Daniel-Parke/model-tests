@@ -1,0 +1,1904 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#02030a">
+<meta name="description" content="An interactive canvas playground for gravity, orbits, cosmic expansion and black holes.">
+<title>Cosmic Gravity Playground</title>
+<style>
+:root {
+  color-scheme: dark;
+  --void: #02030a;
+  --glass: rgba(7, 13, 29, .7);
+  --glass-strong: rgba(10, 19, 40, .88);
+  --line: rgba(151, 205, 255, .16);
+  --line-strong: rgba(130, 223, 255, .4);
+  --text: #f0f7ff;
+  --muted: #93a9bf;
+  --cyan: #62e8ff;
+  --blue: #5d8dff;
+  --amber: #ffc66f;
+  --violet: #c38aff;
+  --panel-width: 330px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--void);
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  color: var(--text);
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button,
+input { font: inherit; }
+
+button,
+input[type="range"] { -webkit-tap-highlight-color: transparent; }
+
+button:focus-visible,
+input:focus-visible,
+#universe:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+#universe {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+#universe.dragging { cursor: grabbing; }
+
+.vignette,
+.chromatic-edge {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.vignette {
+  z-index: 2;
+  background:
+    radial-gradient(ellipse at center, transparent 42%, rgba(0, 2, 10, .28) 73%, rgba(0, 1, 7, .78) 115%),
+    linear-gradient(180deg, rgba(3, 8, 21, .08), rgba(0, 1, 6, .28));
+}
+
+.chromatic-edge {
+  z-index: 2;
+  box-shadow:
+    inset 0 0 110px rgba(19, 66, 148, .12),
+    inset 0 0 34px rgba(99, 37, 154, .06);
+}
+
+.hud {
+  position: fixed;
+  z-index: 5;
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, env(safe-area-inset-left));
+  width: min(var(--panel-width), calc(100vw - 36px));
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(19, 37, 68, .72), rgba(5, 10, 25, .67) 58%, rgba(12, 5, 29, .68)),
+    var(--glass);
+  box-shadow:
+    0 24px 90px rgba(0, 0, 0, .38),
+    inset 0 1px rgba(255, 255, 255, .055);
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+}
+
+.hud::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(125deg, rgba(97, 230, 255, .16), transparent 35%, transparent 68%, rgba(190, 124, 255, .13));
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+}
+
+.hud-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.eyebrow {
+  margin: 0 0 7px;
+  color: var(--cyan);
+  font: 600 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 580;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: 1px solid rgba(105, 224, 255, .16);
+  border-radius: 999px;
+  background: rgba(3, 8, 20, .48);
+  color: #bfefff;
+  font: 600 9px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .12em;
+}
+
+.state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
+  animation: breathe 1.8s ease-in-out infinite;
+}
+
+.state.paused .state-dot {
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  animation: none;
+}
+
+@keyframes breathe {
+  50% { opacity: .45; transform: scale(.72); }
+}
+
+.instructions {
+  margin: 13px 0 17px;
+  color: #adbed0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 2px 5px;
+  border: 1px solid rgba(160, 213, 255, .2);
+  border-bottom-color: rgba(160, 213, 255, .34);
+  border-radius: 5px;
+  background: rgba(120, 183, 255, .07);
+  color: #d8eaff;
+  font: 10px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-align: center;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 17px;
+}
+
+.action {
+  min-height: 42px;
+  border: 1px solid rgba(140, 207, 255, .17);
+  border-radius: 10px;
+  background: rgba(101, 175, 255, .075);
+  color: #ddebfa;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 620;
+  letter-spacing: .015em;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.action:hover {
+  border-color: rgba(98, 232, 255, .48);
+  background: rgba(86, 194, 255, .14);
+  transform: translateY(-1px);
+}
+
+.action:active { transform: translateY(0) scale(.98); }
+
+.action.primary {
+  border-color: rgba(98, 232, 255, .25);
+  background: linear-gradient(135deg, rgba(51, 197, 255, .2), rgba(86, 98, 255, .11));
+}
+
+.controls {
+  display: grid;
+  gap: 13px;
+}
+
+.control-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.control label {
+  color: #a9bbce;
+  font-size: 11px;
+  font-weight: 560;
+  letter-spacing: .02em;
+}
+
+.control output {
+  color: #d9f7ff;
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .035em;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  accent-color: var(--cyan);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(96, 222, 255, .58), rgba(95, 121, 255, .44), rgba(190, 120, 255, .36));
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -5.5px;
+  border: 2px solid rgba(224, 251, 255, .96);
+  border-radius: 50%;
+  background: #2fbfe7;
+  box-shadow: 0 0 13px rgba(68, 220, 255, .7);
+  -webkit-appearance: none;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 3px;
+  border: 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(96, 222, 255, .58), rgba(95, 121, 255, .44), rgba(190, 120, 255, .36));
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(224, 251, 255, .96);
+  border-radius: 50%;
+  background: #2fbfe7;
+  box-shadow: 0 0 13px rgba(68, 220, 255, .7);
+}
+
+.telemetry {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(151, 205, 255, .11);
+  color: #7089a1;
+  font: 9px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.telemetry strong {
+  color: #a6bfd5;
+  font-weight: 520;
+}
+
+.mode-key {
+  position: fixed;
+  z-index: 4;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: rgba(171, 201, 226, .7);
+  font: 10px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px #000;
+  pointer-events: none;
+}
+
+.mode-key::before {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(100, 226, 255, .55));
+}
+
+.announce {
+  position: fixed;
+  z-index: 7;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 10px 14px;
+  border: 1px solid rgba(112, 220, 255, .2);
+  border-radius: 999px;
+  background: rgba(5, 13, 29, .84);
+  color: #ceeefa;
+  font-size: 11px;
+  letter-spacing: .03em;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity .25s ease, transform .25s ease;
+  backdrop-filter: blur(12px);
+}
+
+.announce.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+noscript {
+  position: fixed;
+  z-index: 9;
+  inset: 50% auto auto 50%;
+  width: min(420px, calc(100% - 40px));
+  padding: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--glass-strong);
+  color: var(--text);
+  line-height: 1.6;
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 620px) {
+  .hud {
+    top: max(10px, env(safe-area-inset-top));
+    left: 10px;
+    width: calc(100vw - 20px);
+    padding: 14px 15px 13px;
+    border-radius: 15px;
+  }
+
+  .eyebrow { margin-bottom: 4px; font-size: 9px; }
+  h1 { font-size: 17px; }
+  .state { padding: 5px 7px; }
+  .instructions { margin: 9px 0 12px; font-size: 11px; line-height: 1.4; }
+  .actions { margin-bottom: 11px; }
+  .action { min-height: 38px; }
+  .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .control-head { display: block; min-height: 30px; margin-bottom: 2px; }
+  .control label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+  .control output { display: block; margin-top: 4px; }
+  .telemetry { margin-top: 9px; padding-top: 9px; }
+  .mode-key { right: 13px; bottom: 12px; font-size: 8px; }
+  .mode-key::before { width: 22px; }
+}
+
+@media (max-height: 620px) and (min-width: 621px) {
+  .hud { padding: 15px 17px; }
+  .instructions { margin: 9px 0 11px; }
+  .actions { margin-bottom: 11px; }
+  .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .control-head { display: block; min-height: 29px; }
+  .control output { display: block; margin-top: 4px; }
+  .telemetry { margin-top: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<canvas id="universe" tabindex="0" role="application" aria-label="Interactive cosmic gravity field" aria-describedby="canvas-help" aria-keyshortcuts="Space R Enter Shift+Enter">Your browser does not support the canvas used by this interactive simulation.</canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="chromatic-edge" aria-hidden="true"></div>
+
+<section class="hud" aria-label="Simulation controls">
+  <div class="hud-head">
+    <div>
+      <p class="eyebrow">N-body observatory</p>
+      <h1>Cosmic Gravity Playground</h1>
+    </div>
+    <div class="state" id="state-badge" aria-hidden="true"><span class="state-dot"></span><span id="state-text">Live</span></div>
+  </div>
+
+  <p class="instructions">Move the pointer to stir nearby matter. Click to place a star, drag to launch it, or hold <kbd>Shift</kbd> for a black hole.</p>
+  <p class="visually-hidden" id="canvas-help">Keyboard controls: press Space to pause or resume, R to reset, Enter to create a star, or Shift and Enter to create a black hole at the pointer.</p>
+
+  <div class="actions">
+    <button class="action primary" id="pause" type="button" aria-pressed="false">Pause</button>
+    <button class="action" id="reset" type="button">Reset universe</button>
+  </div>
+
+  <div class="controls">
+    <div class="control">
+      <div class="control-head"><label for="speed">Simulation speed</label><output id="speed-value" for="speed">1.00×</output></div>
+      <input id="speed" type="range" min="0.2" max="2" step="0.05" value="1" aria-label="Simulation speed">
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="gravity">Gravity strength</label><output id="gravity-value" for="gravity">1.00×</output></div>
+      <input id="gravity" type="range" min="0.3" max="2.2" step="0.05" value="1" aria-label="Gravity strength">
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="density">Matter density</label><output id="density-value" for="density">360</output></div>
+      <input id="density" type="range" min="160" max="620" step="20" value="360" aria-label="Particle density">
+    </div>
+  </div>
+
+  <div class="telemetry" aria-hidden="true">
+    <span><strong id="body-count">0</strong> bodies</span>
+    <span><strong id="fps">60</strong> fps</span>
+    <span>Hubble drift on</span>
+  </div>
+</section>
+
+<div class="mode-key" aria-hidden="true">Drag vector to launch</div>
+<output class="announce" id="announce" aria-live="polite"></output>
+
+<noscript>This simulation needs JavaScript. Enable JavaScript and reload the file to enter the playground.</noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const BASE_GRAVITY = 260;
+  const HUBBLE_RATE = 0.0011;
+  const FIXED_STEP = 1 / 90;
+  const MAX_STEPS = 7;
+  const MAX_HEAVY_BODIES = 34;
+  const PARTICLE_SELF_GRAVITY_RADIUS_SQUARED = 125 * 125;
+  const PARTICLE_HUES = [188, 211, 252, 286, 35];
+  const GLOW_COLOURS = [
+    'rgba(82, 229, 255, .82)',
+    'rgba(94, 153, 255, .8)',
+    'rgba(125, 111, 255, .76)',
+    'rgba(206, 112, 255, .75)',
+    'rgba(255, 190, 91, .78)'
+  ];
+
+  const canvas = document.getElementById('universe');
+  const context = canvas.getContext('2d', { alpha: false, desynchronized: true });
+  const trailCanvas = document.createElement('canvas');
+  const trailContext = trailCanvas.getContext('2d', { alpha: true, desynchronized: true });
+  const backdropCanvas = document.createElement('canvas');
+  const backdropContext = backdropCanvas.getContext('2d', { alpha: false });
+
+  const pauseButton = document.getElementById('pause');
+  const resetButton = document.getElementById('reset');
+  const speedInput = document.getElementById('speed');
+  const gravityInput = document.getElementById('gravity');
+  const densityInput = document.getElementById('density');
+  const speedValue = document.getElementById('speed-value');
+  const gravityValue = document.getElementById('gravity-value');
+  const densityValue = document.getElementById('density-value');
+  const bodyCount = document.getElementById('body-count');
+  const fpsReadout = document.getElementById('fps');
+  const stateBadge = document.getElementById('state-badge');
+  const stateText = document.getElementById('state-text');
+  const announce = document.getElementById('announce');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let width = 1;
+  let height = 1;
+  let pixelRatio = 1;
+  let trailPixelRatio = 1;
+  let backdropPixelRatio = 1;
+  let bodies = [];
+  let effects = [];
+  let twinkleStars = [];
+  let glowSprites = [];
+  let nextBodyId = 1;
+  let desiredParticles = Number(densityInput.value);
+  let gravityStrength = Number(gravityInput.value);
+  let simulationSpeed = Number(speedInput.value);
+  let paused = reducedMotion.matches;
+  let cosmicTime = 0;
+  let accumulator = 0;
+  let previousFrameTime = performance.now();
+  let smoothedFps = 60;
+  let lastTelemetryUpdate = 0;
+  let animationFrame = 0;
+  let announcementTimer = 0;
+  let resizeTimer = 0;
+  let sceneScale = 1;
+
+  const pointer = {
+    inside: false,
+    active: false,
+    type: 'mouse',
+    screenX: 0,
+    screenY: 0,
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    energy: 0,
+    previousX: 0,
+    previousY: 0,
+    previousTime: 0
+  };
+
+  let drag = null;
+
+  function clamp(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, value));
+  }
+
+  function mulberry32(seed) {
+    return function random() {
+      let value = seed += 0x6D2B79F5;
+      value = Math.imul(value ^ value >>> 15, value | 1);
+      value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+      return ((value ^ value >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function gaussian(random) {
+    const first = Math.max(1e-8, random());
+    const second = random();
+    return Math.sqrt(-2 * Math.log(first)) * Math.cos(TAU * second);
+  }
+
+  function colourIndexFromHue(hue) {
+    let nearest = 0;
+    let distance = Infinity;
+    for (let index = 0; index < PARTICLE_HUES.length; index += 1) {
+      const difference = Math.abs(PARTICLE_HUES[index] - hue);
+      if (difference < distance) {
+        distance = difference;
+        nearest = index;
+      }
+    }
+    return nearest;
+  }
+
+  function radiusFor(kind, mass) {
+    if (kind === 'particle') return .72 + Math.sqrt(mass) * .58;
+    if (kind === 'blackhole') return 8 + Math.pow(mass, .32) * 1.08;
+    if (kind === 'core') return 5.8 + Math.pow(mass, .31) * .92;
+    return 2.5 + Math.pow(mass, .34) * .72;
+  }
+
+  function createBody(kind, x, y, vx, vy, mass, hue, options = {}) {
+    const radius = options.radius || radiusFor(kind, mass);
+    return {
+      id: nextBodyId++,
+      kind,
+      x,
+      y,
+      previousX: x,
+      previousY: y,
+      drawX: x,
+      drawY: y,
+      vx,
+      vy,
+      ax: 0,
+      ay: 0,
+      mass,
+      radius,
+      hue,
+      colourIndex: colourIndexFromHue(hue),
+      luminosity: options.luminosity ?? 1,
+      phase: options.phase ?? Math.random() * TAU,
+      spin: options.spin ?? (Math.random() < .5 ? -1 : 1) * (.25 + Math.random() * .5),
+      userCreated: Boolean(options.userCreated),
+      trailBreak: true,
+      alive: true
+    };
+  }
+
+  function addBody(...argumentsList) {
+    const body = createBody(...argumentsList);
+    bodies.push(body);
+    return body;
+  }
+
+  function worldToScreen(x, y) {
+    return { x: width * .5 + x, y: height * .5 + y };
+  }
+
+  function screenToWorld(x, y) {
+    return { x: x - width * .5, y: y - height * .5 };
+  }
+
+  function circularVelocity(mass, radius) {
+    const softened = Math.sqrt(radius * radius + 14 * 14);
+    return Math.sqrt(BASE_GRAVITY * mass * radius * radius / Math.pow(softened, 3));
+  }
+
+  function addOrbitalBody(kind, centralMass, radius, angle, mass, hue, baseVelocity, flattening, speedFactor, random) {
+    const cosine = Math.cos(angle);
+    const sine = Math.sin(angle);
+    const x = cosine * radius;
+    const y = sine * radius * flattening;
+    let tangentX = -sine;
+    let tangentY = cosine * flattening;
+    const tangentLength = Math.hypot(tangentX, tangentY) || 1;
+    tangentX /= tangentLength;
+    tangentY /= tangentLength;
+    const speed = circularVelocity(centralMass, radius) * speedFactor;
+    const radialDrift = gaussian(random) * 1.1;
+    return addBody(
+      kind,
+      x,
+      y,
+      baseVelocity.x + tangentX * speed + cosine * radialDrift,
+      baseVelocity.y + tangentY * speed + sine * radialDrift,
+      mass,
+      hue,
+      { luminosity: .72 + random() * .58, phase: random() * TAU }
+    );
+  }
+
+  function resetUniverse(announceReset = true) {
+    bodies = [];
+    effects = [];
+    nextBodyId = 1;
+    cosmicTime = 0;
+    accumulator = 0;
+    const random = mulberry32(0xC05C1C);
+    sceneScale = clamp(Math.min(width, height) / 780, .68, 1.18);
+    const discRadius = clamp(Math.min(width, height) * .56, 255, 475);
+    const primaryMass = 2220;
+    const innerMass = 255;
+    const binaryRadius = 124 * sceneScale;
+    const combinedMass = primaryMass + innerMass;
+    const relativeSpeed = circularVelocity(combinedMass, binaryRadius);
+    const primaryX = -binaryRadius * innerMass / combinedMass;
+    const innerX = binaryRadius * primaryMass / combinedMass;
+    const primaryVy = -relativeSpeed * innerMass / combinedMass;
+    const innerVy = relativeSpeed * primaryMass / combinedMass;
+
+    addBody('core', primaryX, 0, 0, primaryVy, primaryMass, 190, { luminosity: 1.25, phase: .8, spin: .17 });
+    addBody('star', innerX, 0, 0, innerVy, innerMass, 37, { luminosity: 1.35, phase: 2.1, spin: -.48 });
+
+    const satelliteX = -discRadius * .9;
+    const satelliteY = discRadius * .34;
+    const satelliteRadius = Math.hypot(satelliteX, satelliteY);
+    const satelliteSpeed = circularVelocity(combinedMass, satelliteRadius) * .92;
+    const satelliteTangentX = -satelliteY / satelliteRadius;
+    const satelliteTangentY = satelliteX / satelliteRadius;
+    const satelliteVelocity = {
+      x: satelliteTangentX * satelliteSpeed,
+      y: satelliteTangentY * satelliteSpeed
+    };
+    const satellite = addBody('core', satelliteX, satelliteY, satelliteVelocity.x, satelliteVelocity.y, 480, 252, {
+      luminosity: 1.05,
+      phase: 4.4,
+      spin: -.34
+    });
+
+    const wandererX = discRadius * .94;
+    const wandererY = -discRadius * .47;
+    const wanderer = addBody('blackhole', wandererX, wandererY, -11, 23, 880, 282, {
+      luminosity: 1,
+      phase: 1.7,
+      spin: .62
+    });
+
+    const satelliteParticles = Math.floor(desiredParticles * .17);
+    const accretionParticles = Math.floor(desiredParticles * .065);
+    const streamParticles = Math.floor(desiredParticles * .045);
+    const primaryParticles = desiredParticles - satelliteParticles - accretionParticles - streamParticles;
+
+    for (let index = 0; index < primaryParticles; index += 1) {
+      const radius = 52 * sceneScale + Math.pow(random(), .72) * (discRadius - 52 * sceneScale);
+      const arm = index % 2;
+      const angle = arm * Math.PI + radius * (.018 / sceneScale) + gaussian(random) * (.18 + radius / discRadius * .16);
+      const hueChoice = random();
+      const hue = hueChoice < .5 ? 190 + gaussian(random) * 8 : hueChoice < .77 ? 218 + gaussian(random) * 9 : hueChoice < .92 ? 282 + gaussian(random) * 8 : 36 + gaussian(random) * 5;
+      const mass = .12 + Math.pow(random(), 2.1) * 1.5;
+      const speedFactor = .91 + random() * .18;
+      addOrbitalBody('particle', combinedMass + radius * .42, radius, angle, mass, hue, { x: 0, y: 0 }, .67, speedFactor, random);
+    }
+
+    const protoStars = [
+      [142, .86, 74, 202],
+      [202, 2.25, 118, 34],
+      [268, 4.9, 64, 283],
+      [322, 1.48, 154, 214],
+      [392, 3.52, 91, 45],
+      [448, 5.72, 55, 188]
+    ];
+    for (const [baseRadius, angle, mass, hue] of protoStars) {
+      const radius = Math.min(baseRadius * sceneScale, discRadius * .94);
+      addOrbitalBody('star', combinedMass + radius * .45, radius, angle, mass, hue, { x: 0, y: 0 }, .67, .96 + random() * .08, random);
+    }
+
+    for (let index = 0; index < satelliteParticles; index += 1) {
+      const radius = 20 * sceneScale + Math.pow(random(), .62) * 92 * sceneScale;
+      const angle = random() * TAU + radius * .025;
+      const speed = circularVelocity(satellite.mass, radius) * (.87 + random() * .22);
+      const x = satellite.x + Math.cos(angle) * radius;
+      const y = satellite.y + Math.sin(angle) * radius * .72;
+      const tangentX = -Math.sin(angle);
+      const tangentY = Math.cos(angle) * .72;
+      const tangentLength = Math.hypot(tangentX, tangentY) || 1;
+      const hue = random() < .72 ? 248 + gaussian(random) * 7 : 188 + gaussian(random) * 8;
+      addBody('particle', x, y, satellite.vx + tangentX / tangentLength * speed, satellite.vy + tangentY / tangentLength * speed, .15 + random() * .85, hue, {
+        luminosity: .7 + random() * .55,
+        phase: random() * TAU
+      });
+    }
+
+    for (let index = 0; index < accretionParticles; index += 1) {
+      const radius = (22 + Math.pow(random(), .7) * 68) * sceneScale;
+      const angle = random() * TAU;
+      const speed = circularVelocity(wanderer.mass, radius) * (1 + random() * .18);
+      addBody(
+        'particle',
+        wanderer.x + Math.cos(angle) * radius,
+        wanderer.y + Math.sin(angle) * radius * .36,
+        wanderer.vx - Math.sin(angle) * speed,
+        wanderer.vy + Math.cos(angle) * speed * .36,
+        .11 + random() * .55,
+        random() < .6 ? 35 + random() * 12 : 285 + random() * 10,
+        { luminosity: .9 + random() * .55, phase: random() * TAU }
+      );
+    }
+
+    for (let index = 0; index < streamParticles; index += 1) {
+      const progress = (index + random() * .6) / streamParticles;
+      const bend = Math.sin(progress * Math.PI) * discRadius * .13;
+      const x = satellite.x * (1 - progress) - 30 * progress;
+      const y = satellite.y * (1 - progress) + bend;
+      addBody('particle', x, y, satellite.vx * (1 - progress) + gaussian(random) * 3.5, satellite.vy * (1 - progress) + 12 * progress + gaussian(random) * 3, .1 + random() * .55, 220 + random() * 55, {
+        luminosity: .68 + random() * .5,
+        phase: random() * TAU
+      });
+    }
+
+    for (const body of bodies) {
+      body.drawX = body.x;
+      body.drawY = body.y;
+      body.trailBreak = true;
+    }
+    trailContext.setTransform(1, 0, 0, 1, 0, 0);
+    trailContext.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    updateTelemetry(true);
+    addEffect(0, 0, 190, 95 * sceneScale, 'awakening');
+    if (announceReset) showAnnouncement('The original cosmic system has been restored.');
+  }
+
+  function buildGlowSprites() {
+    glowSprites = PARTICLE_HUES.map((hue, index) => {
+      const sprite = document.createElement('canvas');
+      sprite.width = 40;
+      sprite.height = 40;
+      const spriteContext = sprite.getContext('2d');
+      const gradient = spriteContext.createRadialGradient(20, 20, 0, 20, 20, 20);
+      gradient.addColorStop(0, 'rgba(255,255,255,.98)');
+      gradient.addColorStop(.08, `hsla(${hue}, 100%, 86%, .94)`);
+      gradient.addColorStop(.22, `hsla(${hue}, 100%, 66%, .58)`);
+      gradient.addColorStop(.55, `hsla(${hue}, 100%, 55%, .13)`);
+      gradient.addColorStop(1, `hsla(${hue}, 100%, 45%, 0)`);
+      spriteContext.fillStyle = gradient;
+      spriteContext.fillRect(0, 0, 40, 40);
+      sprite.colour = GLOW_COLOURS[index];
+      return sprite;
+    });
+  }
+
+  function buildBackdrop() {
+    const margin = 80;
+    const backdropWidth = width + margin * 2;
+    const backdropHeight = height + margin * 2;
+    backdropCanvas.width = Math.max(1, Math.round(backdropWidth * backdropPixelRatio));
+    backdropCanvas.height = Math.max(1, Math.round(backdropHeight * backdropPixelRatio));
+    backdropContext.setTransform(backdropPixelRatio, 0, 0, backdropPixelRatio, 0, 0);
+
+    const random = mulberry32(0x51A7F13D ^ Math.round(width * 17) ^ Math.round(height * 31));
+    const background = backdropContext.createRadialGradient(backdropWidth * .54, backdropHeight * .46, 0, backdropWidth * .5, backdropHeight * .5, Math.max(backdropWidth, backdropHeight) * .78);
+    background.addColorStop(0, '#071126');
+    background.addColorStop(.36, '#04091a');
+    background.addColorStop(.72, '#02050f');
+    background.addColorStop(1, '#010208');
+    backdropContext.fillStyle = background;
+    backdropContext.fillRect(0, 0, backdropWidth, backdropHeight);
+
+    backdropContext.globalCompositeOperation = 'screen';
+    const nebulaPalette = [188, 215, 253, 286, 320, 36];
+    for (let index = 0; index < 34; index += 1) {
+      const x = random() * backdropWidth;
+      const y = random() * backdropHeight;
+      const radius = (120 + random() * 360) * (Math.min(backdropWidth, backdropHeight) / 800 + .32);
+      const hue = nebulaPalette[Math.floor(random() * nebulaPalette.length)];
+      const saturation = 58 + random() * 32;
+      const lightness = 20 + random() * 18;
+      const alpha = .012 + random() * .028;
+      const cloud = backdropContext.createRadialGradient(x, y, 0, x, y, radius);
+      cloud.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`);
+      cloud.addColorStop(.25, `hsla(${hue + 10}, ${saturation}%, ${lightness}%, ${alpha * .72})`);
+      cloud.addColorStop(.68, `hsla(${hue - 9}, ${saturation}%, ${lightness}%, ${alpha * .2})`);
+      cloud.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`);
+      backdropContext.fillStyle = cloud;
+      backdropContext.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+
+    backdropContext.globalCompositeOperation = 'source-over';
+    for (let index = 0; index < 1350; index += 1) {
+      const x = random() * backdropWidth;
+      const y = random() * backdropHeight;
+      const alpha = random() * random() * .24;
+      const size = .22 + random() * .68;
+      backdropContext.fillStyle = random() < .15 ? `rgba(110,174,255,${alpha})` : `rgba(210,226,244,${alpha})`;
+      backdropContext.fillRect(x, y, size, size);
+    }
+
+    for (let index = 0; index < 610; index += 1) {
+      const x = random() * backdropWidth;
+      const y = random() * backdropHeight;
+      const depth = random();
+      const size = .35 + Math.pow(depth, 5) * 1.55;
+      const alpha = .18 + depth * .57;
+      const hue = random() < .16 ? 205 : random() < .1 ? 36 : 220;
+      backdropContext.fillStyle = `hsla(${hue}, ${30 + depth * 45}%, ${74 + depth * 20}%, ${alpha})`;
+      backdropContext.beginPath();
+      backdropContext.arc(x, y, size, 0, TAU);
+      backdropContext.fill();
+      if (size > 1.28) {
+        backdropContext.fillStyle = `hsla(${hue}, 80%, 82%, ${alpha * .22})`;
+        backdropContext.fillRect(x - size * 3.2, y - .3, size * 6.4, .6);
+        backdropContext.fillRect(x - .3, y - size * 3.2, .6, size * 6.4);
+      }
+    }
+
+    twinkleStars = [];
+    for (let index = 0; index < 42; index += 1) {
+      twinkleStars.push({
+        x: -20 + random() * (width + 40),
+        y: -20 + random() * (height + 40),
+        size: .55 + random() * 1.25,
+        phase: random() * TAU,
+        speed: .35 + random() * 1.1,
+        depth: .25 + random() * .75,
+        hue: random() < .18 ? 35 : random() < .45 ? 190 : 220
+      });
+    }
+  }
+
+  function resizeCanvas(initial = false) {
+    const nextWidth = Math.max(1, window.innerWidth);
+    const nextHeight = Math.max(1, window.innerHeight);
+    const oldWidth = width;
+    const oldHeight = height;
+    width = nextWidth;
+    height = nextHeight;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 1.3);
+    trailPixelRatio = Math.min(window.devicePixelRatio || 1, 1);
+    backdropPixelRatio = Math.min(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(width * pixelRatio);
+    canvas.height = Math.round(height * pixelRatio);
+    trailCanvas.width = Math.round(width * trailPixelRatio);
+    trailCanvas.height = Math.round(height * trailPixelRatio);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    trailContext.setTransform(trailPixelRatio, 0, 0, trailPixelRatio, 0, 0);
+    buildBackdrop();
+
+    if (initial || bodies.length === 0) {
+      resetUniverse(false);
+    } else {
+      const scale = clamp(Math.min(width, height) / Math.max(1, Math.min(oldWidth, oldHeight)), .5, 2);
+      if (Math.abs(scale - 1) > .001) {
+        const velocityScale = 1 / Math.sqrt(scale);
+        for (const body of bodies) {
+          body.x *= scale;
+          body.y *= scale;
+          body.vx *= velocityScale;
+          body.vy *= velocityScale;
+          body.previousX = body.x;
+          body.previousY = body.y;
+          body.drawX = body.x;
+          body.drawY = body.y;
+          body.trailBreak = true;
+        }
+        sceneScale *= scale;
+      }
+    }
+  }
+
+  function calculateAccelerations() {
+    const gravity = BASE_GRAVITY * gravityStrength;
+    const length = bodies.length;
+    for (let index = 0; index < length; index += 1) {
+      bodies[index].ax = 0;
+      bodies[index].ay = 0;
+    }
+
+    for (let firstIndex = 0; firstIndex < length - 1; firstIndex += 1) {
+      const first = bodies[firstIndex];
+      for (let secondIndex = firstIndex + 1; secondIndex < length; secondIndex += 1) {
+        const second = bodies[secondIndex];
+        const dx = second.x - first.x;
+        const dy = second.y - first.y;
+        const rawDistanceSquared = dx * dx + dy * dy;
+        // Tiny matter particles use local self-gravity. Massive bodies still
+        // interact with every object, which keeps the system fully coupled
+        // while avoiding unnecessary square roots for visually negligible
+        // long-range dust-to-dust forces.
+        if (first.kind === 'particle' && second.kind === 'particle' && rawDistanceSquared > PARTICLE_SELF_GRAVITY_RADIUS_SQUARED) continue;
+        const softening = 9.5 + (first.radius + second.radius) * .18;
+        const distanceSquared = rawDistanceSquared + softening * softening;
+        const inverseDistance = 1 / Math.sqrt(distanceSquared);
+        const scale = gravity * inverseDistance * inverseDistance * inverseDistance;
+        const firstScale = scale * second.mass;
+        const secondScale = scale * first.mass;
+        first.ax += dx * firstScale;
+        first.ay += dy * firstScale;
+        second.ax -= dx * secondScale;
+        second.ay -= dy * secondScale;
+      }
+    }
+
+    if (pointer.inside && pointer.active && pointer.type === 'mouse' && pointer.energy >= .04 && !drag) {
+      const radius = 155;
+      const radiusSquared = radius * radius;
+      for (const body of bodies) {
+        if (body.kind !== 'particle') continue;
+        const dx = pointer.x - body.x;
+        const dy = pointer.y - body.y;
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared >= radiusSquared || distanceSquared < .0001) continue;
+        const distance = Math.sqrt(distanceSquared);
+        const falloff = 1 - distance / radius;
+        const pull = 54 * pointer.energy * falloff * falloff;
+        const swirl = 8 * pointer.energy * falloff;
+        body.ax += dx / distance * pull - dy / distance * swirl + pointer.vx * .012 * falloff * pointer.energy;
+        body.ay += dy / distance * pull + dx / distance * swirl + pointer.vy * .012 * falloff * pointer.energy;
+      }
+    }
+  }
+
+  function integrate(step) {
+    const expansion = 1 + HUBBLE_RATE * step;
+    const boundary = Math.max(width, height) * 1.65 + 420;
+    for (const body of bodies) {
+      body.previousX = body.x;
+      body.previousY = body.y;
+      const accelerationLimit = body.kind === 'particle' ? 1550 : 880;
+      const acceleration = Math.hypot(body.ax, body.ay);
+      if (acceleration > accelerationLimit) {
+        const scale = accelerationLimit / acceleration;
+        body.ax *= scale;
+        body.ay *= scale;
+      }
+      body.vx += body.ax * step;
+      body.vy += body.ay * step;
+      const speedLimit = body.kind === 'particle' ? 520 : 350;
+      const speed = Math.hypot(body.vx, body.vy);
+      if (speed > speedLimit) {
+        const scale = speedLimit / speed;
+        body.vx *= scale;
+        body.vy *= scale;
+      }
+      body.x = (body.x + body.vx * step) * expansion;
+      body.y = (body.y + body.vy * step) * expansion;
+
+      if (![body.x, body.y, body.vx, body.vy, body.mass].every(Number.isFinite)) {
+        body.alive = false;
+      } else if (body.kind === 'particle' && Math.hypot(body.x, body.y) > boundary) {
+        recycleParticle(body);
+      }
+    }
+  }
+
+  function recycleParticle(body) {
+    const random = mulberry32((body.id * 2654435761 + Math.floor(cosmicTime * 10)) >>> 0);
+    const heavyBodies = bodies.filter(candidate => candidate.kind !== 'particle' && candidate.alive);
+    const anchor = heavyBodies.length ? heavyBodies[Math.floor(random() * heavyBodies.length)] : { x: 0, y: 0, vx: 0, vy: 0, mass: 1800 };
+    const radius = (45 + random() * 165) * sceneScale;
+    const angle = random() * TAU;
+    const speed = circularVelocity(Math.max(200, anchor.mass), radius) * (.82 + random() * .32);
+    body.x = anchor.x + Math.cos(angle) * radius;
+    body.y = anchor.y + Math.sin(angle) * radius * .7;
+    body.vx = anchor.vx - Math.sin(angle) * speed;
+    body.vy = anchor.vy + Math.cos(angle) * speed * .7;
+    body.previousX = body.x;
+    body.previousY = body.y;
+    body.drawX = body.x;
+    body.drawY = body.y;
+    body.trailBreak = true;
+  }
+
+  function mergeBodies(first, second) {
+    if (!first.alive || !second.alive) return;
+    let survivor = first;
+    let absorbed = second;
+    if (second.kind === 'blackhole' || (first.kind !== 'blackhole' && second.mass > first.mass)) {
+      survivor = second;
+      absorbed = first;
+    }
+    const totalMass = Math.min(12000, survivor.mass + absorbed.mass);
+    const rawMass = survivor.mass + absorbed.mass;
+    survivor.x = (survivor.x * survivor.mass + absorbed.x * absorbed.mass) / rawMass;
+    survivor.y = (survivor.y * survivor.mass + absorbed.y * absorbed.mass) / rawMass;
+    survivor.vx = (survivor.vx * survivor.mass + absorbed.vx * absorbed.mass) / rawMass;
+    survivor.vy = (survivor.vy * survivor.mass + absorbed.vy * absorbed.mass) / rawMass;
+    survivor.mass = totalMass;
+    if (survivor.kind !== 'blackhole' && totalMass > 720) survivor.kind = 'core';
+    survivor.radius = radiusFor(survivor.kind, totalMass);
+    survivor.luminosity = clamp(survivor.luminosity + absorbed.mass / Math.max(200, rawMass), .8, 1.8);
+    survivor.trailBreak = true;
+    absorbed.alive = false;
+    addEffect(survivor.x, survivor.y, survivor.kind === 'blackhole' ? 34 : survivor.hue, 28 + Math.pow(absorbed.mass, .28) * 8, survivor.kind === 'blackhole' ? 'absorption' : 'collision');
+  }
+
+  function resolveCollisions() {
+    const heavyBodies = bodies.filter(body => body.alive && body.kind !== 'particle');
+    const blackHoles = heavyBodies.filter(body => body.kind === 'blackhole');
+
+    for (let firstIndex = 0; firstIndex < heavyBodies.length - 1; firstIndex += 1) {
+      const first = heavyBodies[firstIndex];
+      if (!first.alive) continue;
+      for (let secondIndex = firstIndex + 1; secondIndex < heavyBodies.length; secondIndex += 1) {
+        const second = heavyBodies[secondIndex];
+        if (!second.alive) continue;
+        const threshold = (first.radius + second.radius) * (first.kind === 'blackhole' || second.kind === 'blackhole' ? .78 : .44);
+        const dx = second.x - first.x;
+        const dy = second.y - first.y;
+        if (dx * dx + dy * dy < threshold * threshold) mergeBodies(first, second);
+      }
+    }
+
+    for (const blackHole of blackHoles) {
+      if (!blackHole.alive) continue;
+      const captureRadius = blackHole.radius * .7 + 2.2;
+      const captureSquared = captureRadius * captureRadius;
+      for (const particle of bodies) {
+        if (!particle.alive || particle.kind !== 'particle') continue;
+        const dx = particle.x - blackHole.x;
+        const dy = particle.y - blackHole.y;
+        if (dx * dx + dy * dy < captureSquared) mergeBodies(blackHole, particle);
+      }
+    }
+
+    if (bodies.some(body => !body.alive)) bodies = bodies.filter(body => body.alive);
+  }
+
+  function simulateStep(step = FIXED_STEP, replenishMatter = false) {
+    calculateAccelerations();
+    integrate(step);
+    resolveCollisions();
+    cosmicTime += step;
+    if (replenishMatter) maintainDensity();
+  }
+
+  function addRandomParticle() {
+    const random = mulberry32((0xA57E11 ^ nextBodyId * 1597334677) >>> 0);
+    const anchors = bodies.filter(body => body.alive && body.kind !== 'particle');
+    const anchor = anchors.length ? anchors[Math.floor(random() * anchors.length)] : { x: 0, y: 0, vx: 0, vy: 0, mass: 2000, hue: 190 };
+    const radius = (36 + Math.pow(random(), .7) * 185) * sceneScale;
+    const angle = random() * TAU;
+    const speed = circularVelocity(Math.max(anchor.mass, 220), radius) * (.84 + random() * .28);
+    const hue = random() < .72 ? anchor.hue + gaussian(random) * 14 : PARTICLE_HUES[Math.floor(random() * PARTICLE_HUES.length)];
+    addBody('particle', anchor.x + Math.cos(angle) * radius, anchor.y + Math.sin(angle) * radius * .7, anchor.vx - Math.sin(angle) * speed, anchor.vy + Math.cos(angle) * speed * .7, .12 + random() * 1.1, hue, {
+      luminosity: .7 + random() * .55,
+      phase: random() * TAU
+    });
+  }
+
+  function setParticleDensity(value) {
+    desiredParticles = clamp(Math.round(Number(value) / 20) * 20, 160, 620);
+    densityInput.value = String(desiredParticles);
+    densityValue.value = String(desiredParticles);
+    let particleBodies = bodies.filter(body => body.kind === 'particle');
+    if (particleBodies.length > desiredParticles) {
+      particleBodies.sort((first, second) => Math.hypot(second.x, second.y) - Math.hypot(first.x, first.y));
+      const remove = new Set(particleBodies.slice(0, particleBodies.length - desiredParticles).map(body => body.id));
+      bodies = bodies.filter(body => !remove.has(body.id));
+    } else {
+      while (particleBodies.length < desiredParticles) {
+        addRandomParticle();
+        particleBodies.push(bodies[bodies.length - 1]);
+      }
+    }
+    updateTelemetry(true);
+  }
+
+  function maintainDensity() {
+    let current = 0;
+    for (const body of bodies) if (body.kind === 'particle') current += 1;
+    const additions = Math.min(2, desiredParticles - current);
+    for (let index = 0; index < additions; index += 1) addRandomParticle();
+  }
+
+  function launchVelocity(start, end) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance < 5) return { vx: 0, vy: 0, speed: 0 };
+    const rawSpeed = distance * .72;
+    const speed = Math.min(270, rawSpeed);
+    return { vx: dx / distance * speed, vy: dy / distance * speed, speed };
+  }
+
+  function spawnAt(x, y, vx = 0, vy = 0, blackHole = false, shouldAnnounce = true) {
+    const heavyCount = bodies.reduce((count, body) => count + (body.kind === 'particle' ? 0 : 1), 0);
+    if (heavyCount >= MAX_HEAVY_BODIES) {
+      if (shouldAnnounce) showAnnouncement('The massive-body limit is reached. Reset to begin a new system.');
+      return null;
+    }
+    const kind = blackHole ? 'blackhole' : 'star';
+    const mass = blackHole ? 5200 : 235;
+    const hue = blackHole ? 286 : 192 + Math.random() * 35;
+    const body = addBody(kind, x, y, vx, vy, mass, hue, {
+      luminosity: blackHole ? 1.2 : 1.35,
+      userCreated: true,
+      phase: Math.random() * TAU,
+      spin: blackHole ? .7 : .35
+    });
+    body.drawX = x;
+    body.drawY = y;
+    addEffect(x, y, blackHole ? 34 : hue, blackHole ? 115 : 62, blackHole ? 'birth-hole' : 'birth-star');
+    if (shouldAnnounce) {
+      const motion = Math.hypot(vx, vy) > 1 ? ` launched at ${Math.round(Math.hypot(vx, vy))} pixels per second.` : ' placed in the gravity field.';
+      showAnnouncement(`${blackHole ? 'Black hole' : 'Star'}${motion}`);
+    }
+    updateTelemetry(true);
+    return body;
+  }
+
+  function addEffect(x, y, hue, size, type) {
+    effects.push({
+      x,
+      y,
+      hue,
+      size,
+      type,
+      age: 0,
+      duration: type === 'awakening' ? 2.2 : type === 'birth-hole' ? 1.7 : 1.15,
+      phase: Math.random() * TAU
+    });
+    if (effects.length > 38) effects.splice(0, effects.length - 38);
+  }
+
+  function updateEffects(elapsed) {
+    for (const effect of effects) effect.age += elapsed;
+    effects = effects.filter(effect => effect.age < effect.duration);
+  }
+
+  function fadeAndDrawTrails(elapsed, physicsAdvanced) {
+    trailContext.setTransform(trailPixelRatio, 0, 0, trailPixelRatio, 0, 0);
+    trailContext.globalCompositeOperation = 'destination-out';
+    const fade = 1 - Math.exp(-elapsed / 1.85);
+    trailContext.fillStyle = `rgba(0, 0, 0, ${clamp(fade, 0, .08)})`;
+    trailContext.fillRect(0, 0, width, height);
+
+    if (!physicsAdvanced) return;
+    trailContext.globalCompositeOperation = 'lighter';
+    trailContext.lineCap = 'round';
+    trailContext.lineJoin = 'round';
+
+    for (let colourIndex = 0; colourIndex < GLOW_COLOURS.length; colourIndex += 1) {
+      trailContext.beginPath();
+      let hasSegments = false;
+      for (const body of bodies) {
+        if (body.kind !== 'particle' || body.colourIndex !== colourIndex) continue;
+        if (body.trailBreak) {
+          body.drawX = body.x;
+          body.drawY = body.y;
+          body.trailBreak = false;
+          continue;
+        }
+        const start = worldToScreen(body.drawX, body.drawY);
+        const end = worldToScreen(body.x, body.y);
+        if ((start.x < -30 && end.x < -30) || (start.x > width + 30 && end.x > width + 30) || (start.y < -30 && end.y < -30) || (start.y > height + 30 && end.y > height + 30)) {
+          body.drawX = body.x;
+          body.drawY = body.y;
+          continue;
+        }
+        trailContext.moveTo(start.x, start.y);
+        trailContext.lineTo(end.x, end.y);
+        hasSegments = true;
+        body.drawX = body.x;
+        body.drawY = body.y;
+      }
+      if (hasSegments) {
+        trailContext.strokeStyle = GLOW_COLOURS[colourIndex];
+        trailContext.globalAlpha = .25;
+        trailContext.lineWidth = .68;
+        trailContext.stroke();
+      }
+    }
+
+    for (const body of bodies) {
+      if (body.kind === 'particle') continue;
+      if (body.trailBreak) {
+        body.drawX = body.x;
+        body.drawY = body.y;
+        body.trailBreak = false;
+        continue;
+      }
+      const start = worldToScreen(body.drawX, body.drawY);
+      const end = worldToScreen(body.x, body.y);
+      trailContext.beginPath();
+      trailContext.moveTo(start.x, start.y);
+      trailContext.lineTo(end.x, end.y);
+      trailContext.strokeStyle = `hsla(${body.kind === 'blackhole' ? 32 : body.hue}, 100%, 68%, ${body.kind === 'blackhole' ? .62 : .48})`;
+      trailContext.globalAlpha = 1;
+      trailContext.lineWidth = body.kind === 'blackhole' ? 2.2 : 1.35;
+      trailContext.shadowColor = `hsla(${body.hue}, 100%, 66%, .65)`;
+      trailContext.shadowBlur = body.kind === 'blackhole' ? 10 : 7;
+      trailContext.stroke();
+      body.drawX = body.x;
+      body.drawY = body.y;
+    }
+    trailContext.shadowBlur = 0;
+    trailContext.globalAlpha = 1;
+  }
+
+  function drawBackground(time) {
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    context.globalCompositeOperation = 'source-over';
+    context.globalAlpha = 1;
+    context.fillStyle = '#010208';
+    context.fillRect(0, 0, width, height);
+
+    const idleX = Math.sin(time * .00007) * 1.7;
+    const idleY = Math.cos(time * .00009) * 1.3;
+    const pointerX = pointer.inside ? (pointer.screenX / width - .5) * -8 : idleX;
+    const pointerY = pointer.inside ? (pointer.screenY / height - .5) * -6 : idleY;
+    context.drawImage(backdropCanvas, 0, 0, backdropCanvas.width, backdropCanvas.height, -80 + pointerX, -80 + pointerY, width + 160, height + 160);
+
+    context.globalCompositeOperation = 'screen';
+    for (const star of twinkleStars) {
+      const pulse = .38 + .62 * (.5 + .5 * Math.sin(time * .001 * star.speed + star.phase));
+      const parallaxX = pointer.inside ? (pointer.screenX / width - .5) * -3 * star.depth : 0;
+      const parallaxY = pointer.inside ? (pointer.screenY / height - .5) * -2.2 * star.depth : 0;
+      context.fillStyle = `hsla(${star.hue}, 80%, 88%, ${pulse * .62})`;
+      context.beginPath();
+      context.arc(star.x + parallaxX, star.y + parallaxY, star.size * pulse, 0, TAU);
+      context.fill();
+    }
+    context.globalCompositeOperation = 'source-over';
+    context.globalAlpha = 1;
+  }
+
+  function drawFieldContours(time) {
+    const mainCore = bodies.find(body => body.kind === 'core');
+    if (!mainCore) return;
+    const screen = worldToScreen(mainCore.x, mainCore.y);
+    context.save();
+    context.translate(screen.x, screen.y);
+    context.rotate(time * .000018);
+    context.globalCompositeOperation = 'screen';
+    for (let index = 0; index < 3; index += 1) {
+      const radius = (85 + index * 74) * sceneScale;
+      context.beginPath();
+      context.ellipse(0, 0, radius, radius * .67, 0, -1.06 + index * .34, 1.15 + index * .48);
+      context.strokeStyle = `rgba(91, 198, 255, ${.032 - index * .006})`;
+      context.lineWidth = .7;
+      context.stroke();
+    }
+    context.restore();
+  }
+
+  function drawParticleGlow(body, time) {
+    const screen = worldToScreen(body.x, body.y);
+    if (screen.x < -18 || screen.x > width + 18 || screen.y < -18 || screen.y > height + 18) return;
+    const twinkle = .78 + Math.sin(time * .002 + body.phase) * .16;
+    const size = (5.6 + body.radius * 3.2) * twinkle;
+    const sprite = glowSprites[body.colourIndex];
+    context.globalAlpha = clamp(body.luminosity * .72, .35, 1);
+    context.drawImage(sprite, screen.x - size, screen.y - size, size * 2, size * 2);
+  }
+
+  function drawParticleField(time) {
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    for (let colourIndex = 0; colourIndex < GLOW_COLOURS.length; colourIndex += 1) {
+      context.beginPath();
+      let hasParticles = false;
+      for (const body of bodies) {
+        if (body.kind !== 'particle' || body.colourIndex !== colourIndex) continue;
+        const screen = worldToScreen(body.x, body.y);
+        if (screen.x < -5 || screen.x > width + 5 || screen.y < -5 || screen.y > height + 5) continue;
+        const radius = clamp(.5 + body.radius * .36, .72, 1.45);
+        context.moveTo(screen.x + radius, screen.y);
+        context.arc(screen.x, screen.y, radius, 0, TAU);
+        hasParticles = true;
+      }
+      if (hasParticles) {
+        context.globalAlpha = .68;
+        context.fillStyle = GLOW_COLOURS[colourIndex];
+        context.fill();
+      }
+    }
+
+    for (const body of bodies) {
+      if (body.kind !== 'particle') continue;
+      if (body.id % 4 === 0 || body.mass > 1.08 || body.luminosity > 1.2) drawParticleGlow(body, time);
+    }
+    context.restore();
+  }
+
+  function starSprite(body, time) {
+    const screen = worldToScreen(body.x, body.y);
+    if (screen.x < -100 || screen.x > width + 100 || screen.y < -100 || screen.y > height + 100) return;
+    const pulse = 1 + Math.sin(time * .0015 + body.phase) * .045;
+    const visualRadius = body.radius * (body.kind === 'core' ? 1.12 : 1) * pulse;
+    const haloRadius = visualRadius * (body.kind === 'core' ? 6.8 : 5.4);
+    const halo = context.createRadialGradient(screen.x, screen.y, 0, screen.x, screen.y, haloRadius);
+    halo.addColorStop(0, 'rgba(255,255,255,.98)');
+    halo.addColorStop(.055, `hsla(${body.hue}, 100%, 91%, .98)`);
+    halo.addColorStop(.16, `hsla(${body.hue}, 100%, 67%, .88)`);
+    halo.addColorStop(.42, `hsla(${body.hue}, 100%, 55%, .2)`);
+    halo.addColorStop(1, `hsla(${body.hue}, 100%, 45%, 0)`);
+
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    context.globalAlpha = clamp(body.luminosity, .72, 1.45);
+    context.fillStyle = halo;
+    context.fillRect(screen.x - haloRadius, screen.y - haloRadius, haloRadius * 2, haloRadius * 2);
+
+    context.translate(screen.x, screen.y);
+    context.rotate(body.phase + time * .000035 * body.spin);
+    const rayAlpha = body.kind === 'core' ? .24 : .14;
+    const rayGradient = context.createLinearGradient(-haloRadius * 1.2, 0, haloRadius * 1.2, 0);
+    rayGradient.addColorStop(0, 'transparent');
+    rayGradient.addColorStop(.45, `hsla(${body.hue}, 100%, 78%, 0)`);
+    rayGradient.addColorStop(.5, `hsla(${body.hue}, 100%, 88%, ${rayAlpha})`);
+    rayGradient.addColorStop(.55, `hsla(${body.hue}, 100%, 78%, 0)`);
+    rayGradient.addColorStop(1, 'transparent');
+    context.fillStyle = rayGradient;
+    context.fillRect(-haloRadius * 1.2, -.42, haloRadius * 2.4, .84);
+    context.rotate(Math.PI / 2);
+    context.globalAlpha *= .55;
+    context.fillRect(-haloRadius * .78, -.35, haloRadius * 1.56, .7);
+    context.restore();
+
+    context.globalCompositeOperation = 'source-over';
+    context.globalAlpha = 1;
+    context.fillStyle = '#fff';
+    context.beginPath();
+    context.arc(screen.x, screen.y, Math.max(1.1, visualRadius * .22), 0, TAU);
+    context.fill();
+  }
+
+  function drawBlackHole(body, time) {
+    const screen = worldToScreen(body.x, body.y);
+    if (screen.x < -130 || screen.x > width + 130 || screen.y < -130 || screen.y > height + 130) return;
+    const coreRadius = body.radius * (body.userCreated ? 1.12 : 1);
+    const haloRadius = coreRadius * 5.4;
+    const rotation = body.phase + time * .00032 * body.spin;
+
+    context.save();
+    context.translate(screen.x, screen.y);
+    context.rotate(rotation);
+    context.globalCompositeOperation = 'lighter';
+
+    const lens = context.createRadialGradient(0, 0, coreRadius * .55, 0, 0, haloRadius);
+    lens.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    lens.addColorStop(.15, 'rgba(255, 214, 139, .18)');
+    lens.addColorStop(.25, 'rgba(255, 133, 66, .15)');
+    lens.addColorStop(.43, 'rgba(177, 77, 255, .075)');
+    lens.addColorStop(1, 'rgba(72, 56, 255, 0)');
+    context.fillStyle = lens;
+    context.fillRect(-haloRadius, -haloRadius, haloRadius * 2, haloRadius * 2);
+
+    context.save();
+    context.scale(1, .31);
+    context.lineCap = 'round';
+    for (let ring = 0; ring < 5; ring += 1) {
+      const radius = coreRadius * (1.5 + ring * .42);
+      const offset = time * .00055 * (ring % 2 ? -1 : 1) + ring * 1.2;
+      context.beginPath();
+      context.arc(0, 0, radius, offset, offset + 1.45 + ring * .11);
+      context.strokeStyle = ring < 2 ? `rgba(255, ${204 - ring * 34}, ${105 - ring * 20}, ${.72 - ring * .09})` : `rgba(${214 - ring * 13}, ${108 - ring * 8}, 255, ${.4 - ring * .04})`;
+      context.lineWidth = Math.max(1, coreRadius * (.2 - ring * .018));
+      context.shadowColor = ring < 2 ? '#ffad55' : '#b368ff';
+      context.shadowBlur = 10 + ring * 2;
+      context.stroke();
+    }
+    context.restore();
+
+    context.shadowBlur = 0;
+    context.globalCompositeOperation = 'source-over';
+    context.fillStyle = '#000106';
+    context.beginPath();
+    context.arc(0, 0, coreRadius, 0, TAU);
+    context.fill();
+
+    context.globalCompositeOperation = 'lighter';
+    context.strokeStyle = 'rgba(255, 226, 178, .92)';
+    context.lineWidth = Math.max(1, coreRadius * .11);
+    context.shadowColor = '#ffbb6e';
+    context.shadowBlur = 9;
+    context.beginPath();
+    context.arc(0, 0, coreRadius * 1.14, -.08, Math.PI + .18);
+    context.stroke();
+
+    context.shadowBlur = 0;
+    context.strokeStyle = 'rgba(172, 101, 255, .3)';
+    context.lineWidth = .8;
+    context.setLineDash([2, 7]);
+    context.beginPath();
+    context.arc(0, 0, coreRadius * 3.6, 0, TAU);
+    context.stroke();
+    context.setLineDash([]);
+    context.restore();
+  }
+
+  function drawBodies(time) {
+    drawParticleField(time);
+
+    const heavyBodies = bodies.filter(body => body.kind !== 'particle').sort((first, second) => first.mass - second.mass);
+    for (const body of heavyBodies) {
+      if (body.kind === 'blackhole') drawBlackHole(body, time);
+      else starSprite(body, time);
+    }
+    context.globalAlpha = 1;
+    context.globalCompositeOperation = 'source-over';
+  }
+
+  function drawEffects() {
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    for (const effect of effects) {
+      const progress = effect.age / effect.duration;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const alpha = (1 - progress) * (effect.type === 'awakening' ? .22 : .72);
+      const screen = worldToScreen(effect.x, effect.y);
+      const radius = effect.size * (.18 + eased);
+
+      context.strokeStyle = `hsla(${effect.hue}, 100%, 72%, ${alpha})`;
+      context.lineWidth = Math.max(.6, (1 - progress) * 2.1);
+      context.shadowColor = `hsla(${effect.hue}, 100%, 65%, .8)`;
+      context.shadowBlur = 12;
+      context.beginPath();
+      context.arc(screen.x, screen.y, radius, 0, TAU);
+      context.stroke();
+
+      if (effect.type !== 'awakening') {
+        const rays = effect.type === 'birth-hole' ? 16 : 9;
+        for (let index = 0; index < rays; index += 1) {
+          const angle = effect.phase + index / rays * TAU + progress * (index % 2 ? -.8 : .8);
+          const inner = radius * .25;
+          const outer = radius * (.55 + ((index * 37) % 17) / 22);
+          context.strokeStyle = `hsla(${effect.hue + index * 3}, 100%, 75%, ${alpha * .55})`;
+          context.lineWidth = .7;
+          context.beginPath();
+          context.moveTo(screen.x + Math.cos(angle) * inner, screen.y + Math.sin(angle) * inner);
+          context.lineTo(screen.x + Math.cos(angle) * outer, screen.y + Math.sin(angle) * outer);
+          context.stroke();
+        }
+      }
+    }
+    context.restore();
+  }
+
+  function probeAcceleration(x, y, sources) {
+    let ax = 0;
+    let ay = 0;
+    const gravity = BASE_GRAVITY * gravityStrength;
+    for (const source of sources) {
+      const dx = source.x - x;
+      const dy = source.y - y;
+      const softening = 12 + source.radius * .2;
+      const distanceSquared = dx * dx + dy * dy + softening * softening;
+      const inverseDistance = 1 / Math.sqrt(distanceSquared);
+      const scale = gravity * source.mass * inverseDistance * inverseDistance * inverseDistance;
+      ax += dx * scale;
+      ay += dy * scale;
+    }
+    return { ax, ay };
+  }
+
+  function predictedPath(start, velocity) {
+    const sources = bodies.filter(body => body.kind !== 'particle').sort((first, second) => second.mass - first.mass).slice(0, 14);
+    const points = [{ x: start.x, y: start.y }];
+    let x = start.x;
+    let y = start.y;
+    let vx = velocity.vx;
+    let vy = velocity.vy;
+    const step = .105;
+    for (let index = 0; index < 44; index += 1) {
+      const acceleration = probeAcceleration(x, y, sources);
+      vx += acceleration.ax * step;
+      vy += acceleration.ay * step;
+      const speed = Math.hypot(vx, vy);
+      if (speed > 440) {
+        vx *= 440 / speed;
+        vy *= 440 / speed;
+      }
+      x = (x + vx * step) * (1 + HUBBLE_RATE * step);
+      y = (y + vy * step) * (1 + HUBBLE_RATE * step);
+      if (index % 2 === 1) points.push({ x, y });
+    }
+    return points;
+  }
+
+  function drawDragPreview() {
+    if (!drag) return;
+    const startScreen = worldToScreen(drag.startX, drag.startY);
+    const endScreen = { x: pointer.screenX, y: pointer.screenY };
+    const velocity = launchVelocity({ x: drag.startX, y: drag.startY }, { x: pointer.x, y: pointer.y });
+    const isBlackHole = drag.blackHole || drag.shiftNow;
+    const hue = isBlackHole ? 33 : 190;
+    const colour = isBlackHole ? 'rgba(255, 188, 93, .96)' : 'rgba(98, 232, 255, .96)';
+
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    context.shadowColor = colour;
+    context.shadowBlur = 11;
+    context.strokeStyle = colour;
+    context.fillStyle = colour;
+    context.lineWidth = 1.35;
+
+    context.beginPath();
+    context.arc(startScreen.x, startScreen.y, isBlackHole ? 12 : 8, 0, TAU);
+    context.stroke();
+    context.globalAlpha = .32;
+    context.beginPath();
+    context.arc(startScreen.x, startScreen.y, isBlackHole ? 22 : 15, 0, TAU);
+    context.stroke();
+    context.globalAlpha = 1;
+
+    if (velocity.speed > 0) {
+      context.beginPath();
+      context.moveTo(startScreen.x, startScreen.y);
+      context.lineTo(endScreen.x, endScreen.y);
+      context.stroke();
+      const angle = Math.atan2(endScreen.y - startScreen.y, endScreen.x - startScreen.x);
+      context.beginPath();
+      context.moveTo(endScreen.x, endScreen.y);
+      context.lineTo(endScreen.x - Math.cos(angle - .48) * 11, endScreen.y - Math.sin(angle - .48) * 11);
+      context.lineTo(endScreen.x - Math.cos(angle + .48) * 11, endScreen.y - Math.sin(angle + .48) * 11);
+      context.closePath();
+      context.fill();
+
+      const path = predictedPath({ x: drag.startX, y: drag.startY }, velocity);
+      context.globalAlpha = .68;
+      context.setLineDash([1, 7]);
+      context.lineCap = 'round';
+      context.beginPath();
+      path.forEach((point, index) => {
+        const screen = worldToScreen(point.x, point.y);
+        if (index === 0) context.moveTo(screen.x, screen.y);
+        else context.lineTo(screen.x, screen.y);
+      });
+      context.stroke();
+      context.setLineDash([]);
+    }
+
+    const label = velocity.speed > 0 ? `${isBlackHole ? 'BLACK HOLE' : 'STAR'}  ${Math.round(velocity.speed)} PX/S` : `PLACE ${isBlackHole ? 'BLACK HOLE' : 'STAR'}`;
+    context.globalCompositeOperation = 'source-over';
+    context.shadowBlur = 0;
+    context.font = '600 10px ui-monospace, SFMono-Regular, Consolas, monospace';
+    context.textBaseline = 'middle';
+    const labelWidth = context.measureText(label).width + 18;
+    const labelX = clamp(startScreen.x + 15, 8, width - labelWidth - 8);
+    const labelY = clamp(startScreen.y - 30, 12, height - 24);
+    context.fillStyle = 'rgba(3, 9, 22, .82)';
+    context.strokeStyle = `hsla(${hue}, 100%, 70%, .34)`;
+    roundedRectangle(context, labelX, labelY, labelWidth, 24, 7);
+    context.fill();
+    context.stroke();
+    context.fillStyle = colour;
+    context.fillText(label, labelX + 9, labelY + 12.5);
+    context.restore();
+  }
+
+  function roundedRectangle(renderContext, x, y, rectangleWidth, rectangleHeight, radius) {
+    const r = Math.min(radius, rectangleWidth * .5, rectangleHeight * .5);
+    renderContext.beginPath();
+    renderContext.moveTo(x + r, y);
+    renderContext.arcTo(x + rectangleWidth, y, x + rectangleWidth, y + rectangleHeight, r);
+    renderContext.arcTo(x + rectangleWidth, y + rectangleHeight, x, y + rectangleHeight, r);
+    renderContext.arcTo(x, y + rectangleHeight, x, y, r);
+    renderContext.arcTo(x, y, x + rectangleWidth, y, r);
+    renderContext.closePath();
+  }
+
+  function drawPointerField(time) {
+    if (!pointer.inside || pointer.type !== 'mouse' || drag || pointer.energy < .04) return;
+    context.save();
+    context.globalCompositeOperation = 'lighter';
+    context.strokeStyle = `rgba(98, 232, 255, ${.06 + pointer.energy * .12})`;
+    context.lineWidth = .7;
+    context.setLineDash([2, 9]);
+    context.lineDashOffset = -time * .018;
+    context.beginPath();
+    context.arc(pointer.screenX, pointer.screenY, 27 + pointer.energy * 11, 0, TAU);
+    context.stroke();
+    context.setLineDash([]);
+    context.fillStyle = `rgba(170, 242, 255, ${.2 + pointer.energy * .3})`;
+    context.beginPath();
+    context.arc(pointer.screenX, pointer.screenY, 1.2, 0, TAU);
+    context.fill();
+    context.restore();
+  }
+
+  function render(time) {
+    drawBackground(time);
+    drawFieldContours(time);
+    context.globalCompositeOperation = 'screen';
+    context.globalAlpha = .94;
+    context.drawImage(trailCanvas, 0, 0, trailCanvas.width, trailCanvas.height, 0, 0, width, height);
+    context.globalAlpha = 1;
+    context.globalCompositeOperation = 'source-over';
+    drawBodies(time);
+    drawEffects();
+    drawPointerField(time);
+    drawDragPreview();
+  }
+
+  function updateTelemetry(force = false) {
+    const now = performance.now();
+    if (!force && now - lastTelemetryUpdate < 400) return;
+    lastTelemetryUpdate = now;
+    bodyCount.textContent = String(bodies.length);
+    fpsReadout.textContent = String(Math.round(smoothedFps));
+  }
+
+  function frame(time) {
+    const rawElapsed = Math.max(0, (time - previousFrameTime) / 1000);
+    const elapsed = clamp(rawElapsed, 0, .04);
+    previousFrameTime = time;
+    if (rawElapsed > 0) {
+      const fpsWeight = rawElapsed >= .5 ? .3 : .075;
+      smoothedFps += (Math.min(240, 1 / rawElapsed) - smoothedFps) * fpsWeight;
+    }
+    const pointerElapsed = Math.min(rawElapsed, .5);
+    pointer.energy *= Math.exp(-pointerElapsed * 1.8);
+    pointer.vx *= Math.exp(-pointerElapsed * 4.5);
+    pointer.vy *= Math.exp(-pointerElapsed * 4.5);
+    updateEffects(elapsed);
+
+    let steps = 0;
+    if (!paused) {
+      accumulator += elapsed * simulationSpeed;
+      while (accumulator >= FIXED_STEP && steps < MAX_STEPS) {
+        simulateStep(FIXED_STEP, true);
+        accumulator -= FIXED_STEP;
+        steps += 1;
+      }
+      if (steps === MAX_STEPS && accumulator >= FIXED_STEP) accumulator = 0;
+    }
+
+    fadeAndDrawTrails(elapsed, steps > 0);
+    render(time);
+    updateTelemetry();
+    animationFrame = requestAnimationFrame(frame);
+  }
+
+  function setPaused(value, shouldAnnounce = true) {
+    paused = Boolean(value);
+    pauseButton.textContent = paused ? 'Resume' : 'Pause';
+    pauseButton.setAttribute('aria-pressed', String(paused));
+    pauseButton.setAttribute('aria-label', paused ? 'Resume simulation' : 'Pause simulation');
+    stateBadge.classList.toggle('paused', paused);
+    stateText.textContent = paused ? 'Paused' : 'Live';
+    accumulator = 0;
+    previousFrameTime = performance.now();
+    if (shouldAnnounce) showAnnouncement(paused ? 'Simulation paused.' : 'Simulation resumed.');
+  }
+
+  function showAnnouncement(message) {
+    announce.value = message;
+    announce.textContent = message;
+    announce.classList.add('show');
+    window.clearTimeout(announcementTimer);
+    announcementTimer = window.setTimeout(() => announce.classList.remove('show'), 2100);
+  }
+
+  function updatePointer(event) {
+    const rect = canvas.getBoundingClientRect();
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+    const world = screenToWorld(screenX, screenY);
+    const now = performance.now();
+    const elapsed = Math.max(8, now - pointer.previousTime) / 1000;
+    const rawVx = (world.x - pointer.previousX) / elapsed;
+    const rawVy = (world.y - pointer.previousY) / elapsed;
+    pointer.vx += (clamp(rawVx, -900, 900) - pointer.vx) * .35;
+    pointer.vy += (clamp(rawVy, -900, 900) - pointer.vy) * .35;
+    pointer.previousX = world.x;
+    pointer.previousY = world.y;
+    pointer.previousTime = now;
+    pointer.screenX = screenX;
+    pointer.screenY = screenY;
+    pointer.x = world.x;
+    pointer.y = world.y;
+    pointer.type = event.pointerType || 'mouse';
+    pointer.inside = true;
+    pointer.active = true;
+    pointer.energy = clamp(.28 + Math.hypot(pointer.vx, pointer.vy) / 640, .28, 1);
+  }
+
+  canvas.addEventListener('pointerenter', event => {
+    updatePointer(event);
+    pointer.inside = true;
+  });
+
+  canvas.addEventListener('pointermove', event => {
+    updatePointer(event);
+    if (drag) drag.shiftNow = event.shiftKey;
+  });
+
+  canvas.addEventListener('pointerleave', () => {
+    if (!drag) pointer.inside = false;
+  });
+
+  canvas.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    updatePointer(event);
+    canvas.focus({ preventScroll: true });
+    canvas.setPointerCapture(event.pointerId);
+    drag = {
+      pointerId: event.pointerId,
+      startX: pointer.x,
+      startY: pointer.y,
+      startScreenX: pointer.screenX,
+      startScreenY: pointer.screenY,
+      blackHole: event.shiftKey,
+      shiftNow: event.shiftKey
+    };
+    canvas.classList.add('dragging');
+  });
+
+  canvas.addEventListener('pointerup', event => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    updatePointer(event);
+    const velocity = launchVelocity({ x: drag.startX, y: drag.startY }, { x: pointer.x, y: pointer.y });
+    const blackHole = drag.blackHole || event.shiftKey;
+    spawnAt(drag.startX, drag.startY, velocity.vx, velocity.vy, blackHole);
+    drag = null;
+    canvas.classList.remove('dragging');
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+  });
+
+  canvas.addEventListener('pointercancel', event => {
+    if (drag && drag.pointerId === event.pointerId) {
+      drag = null;
+      canvas.classList.remove('dragging');
+    }
+  });
+
+  pauseButton.addEventListener('click', () => setPaused(!paused));
+  resetButton.addEventListener('click', () => resetUniverse(true));
+
+  speedInput.addEventListener('input', event => {
+    simulationSpeed = Number(event.target.value);
+    speedValue.value = `${simulationSpeed.toFixed(2)}×`;
+  });
+  speedInput.addEventListener('change', () => showAnnouncement(`Simulation speed set to ${simulationSpeed.toFixed(2)} times.`));
+
+  gravityInput.addEventListener('input', event => {
+    gravityStrength = Number(event.target.value);
+    gravityValue.value = `${gravityStrength.toFixed(2)}×`;
+  });
+  gravityInput.addEventListener('change', () => showAnnouncement(`Gravity strength set to ${gravityStrength.toFixed(2)} times.`));
+
+  densityInput.addEventListener('input', event => {
+    setParticleDensity(Number(event.target.value));
+  });
+  densityInput.addEventListener('change', () => showAnnouncement(`Matter density set to ${desiredParticles} particles.`));
+
+  document.addEventListener('keydown', event => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement || target instanceof HTMLButtonElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      setPaused(!paused);
+    } else if (event.key.toLowerCase() === 'r') {
+      event.preventDefault();
+      resetUniverse(true);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      const position = pointer.inside ? { x: pointer.x, y: pointer.y } : { x: 0, y: 0 };
+      spawnAt(position.x, position.y, 0, 0, event.shiftKey);
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    previousFrameTime = performance.now();
+    accumulator = 0;
+  });
+
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => resizeCanvas(false), 120);
+  });
+
+  reducedMotion.addEventListener?.('change', event => {
+    if (event.matches) setPaused(true, false);
+  });
+
+  buildGlowSprites();
+  resizeCanvas(true);
+  setPaused(paused, false);
+  animationFrame = requestAnimationFrame(frame);
+
+  window.__cosmicGravity = {
+    get bodies() { return bodies; },
+    get effects() { return effects; },
+    get pointer() { return pointer; },
+    get drag() { return drag; },
+    get paused() { return paused; },
+    get cosmicTime() { return cosmicTime; },
+    get settings() { return { simulationSpeed, gravityStrength, desiredParticles, sceneScale, pixelRatio, trailPixelRatio, backdropPixelRatio }; },
+    constants: { BASE_GRAVITY, HUBBLE_RATE, FIXED_STEP, MAX_HEAVY_BODIES, PARTICLE_SELF_GRAVITY_RADIUS_SQUARED },
+    calculateAccelerations,
+    createBody,
+    launchVelocity,
+    resetUniverse,
+    resizeCanvas,
+    setPaused,
+    setParticleDensity,
+    simulateStep,
+    spawnAt,
+    worldToScreen,
+    screenToWorld,
+    replaceBodies(replacement) {
+      bodies = replacement;
+      for (const body of bodies) {
+        body.alive = body.alive !== false;
+        body.trailBreak = true;
+      }
+    },
+    setGravity(value) {
+      gravityStrength = Number(value);
+      gravityInput.value = String(value);
+      gravityValue.value = `${gravityStrength.toFixed(2)}×`;
+    },
+    stop() {
+      cancelAnimationFrame(animationFrame);
+    }
+  };
+})();
+</script>
+</body>
+</html>

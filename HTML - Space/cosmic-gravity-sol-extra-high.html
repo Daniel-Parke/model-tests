@@ -1,0 +1,1361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A cinematic interactive N-body gravity playground with galactic collisions, cosmic expansion, luminous trails and black holes.">
+<meta name="theme-color" content="#02040b">
+<title>Cosmic Gravity Playground | Sol Extra High</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #f3f8ff;
+    --muted: #9aabc5;
+    --cyan: #67e8ff;
+    --violet: #aa8cff;
+    --amber: #ffc86b;
+    --line: rgba(153, 205, 255, .16);
+    --glass: rgba(7, 13, 28, .64);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #02040b;
+  }
+
+  body {
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: .01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #stage, canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #stage { isolation: isolate; background: #02040b; }
+  canvas { display: block; }
+  #backdrop, #trails { pointer-events: none; }
+
+  #universe {
+    z-index: 2;
+    touch-action: none;
+    cursor: crosshair;
+    outline: none;
+  }
+
+  #universe:focus-visible { box-shadow: inset 0 0 0 2px rgba(103, 232, 255, .5); }
+
+  .vignette {
+    position: fixed;
+    z-index: 3;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 48%, transparent 44%, rgba(0, 2, 9, .32) 78%, rgba(0, 1, 6, .76) 115%),
+      linear-gradient(180deg, rgba(0, 3, 12, .14), transparent 18%, transparent 78%, rgba(0, 2, 10, .38));
+    box-shadow: inset 0 0 110px rgba(0, 0, 0, .54);
+  }
+
+  .panel {
+    position: fixed;
+    z-index: 6;
+    top: max(18px, env(safe-area-inset-top));
+    left: max(18px, env(safe-area-inset-left));
+    width: min(330px, calc(100vw - 36px));
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    overflow: hidden;
+    background:
+      linear-gradient(145deg, rgba(25, 38, 67, .55), rgba(4, 9, 21, .78)),
+      var(--glass);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 255, 255, .05);
+    backdrop-filter: blur(20px) saturate(135%);
+    -webkit-backdrop-filter: blur(20px) saturate(135%);
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 68%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(103, 232, 255, .76), transparent);
+    pointer-events: none;
+  }
+
+  .panel summary {
+    position: relative;
+    display: block;
+    min-height: 98px;
+    padding: 20px 50px 17px 20px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .panel summary::-webkit-details-marker { display: none; }
+
+  .panel summary::after {
+    content: "−";
+    position: absolute;
+    top: 20px;
+    right: 18px;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--cyan);
+    font-size: 18px;
+    font-weight: 300;
+  }
+
+  .panel:not([open]) summary::after { content: "+"; }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #8ca5c4;
+    font: 600 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+
+  .pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  .title {
+    display: block;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 25px;
+    font-weight: 400;
+    line-height: .98;
+    letter-spacing: -.035em;
+  }
+
+  .panel-content {
+    padding: 0 20px 19px;
+    border-top: 1px solid rgba(153, 205, 255, .1);
+  }
+
+  .instructions {
+    margin: 14px 0 16px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .instructions strong { color: #dcecff; font-weight: 600; }
+
+  .button-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-bottom: 17px;
+  }
+
+  button {
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid rgba(140, 193, 238, .2);
+    border-radius: 9px;
+    color: #eaf6ff;
+    background: rgba(95, 144, 195, .08);
+    font: 600 12px/1 system-ui, sans-serif;
+    letter-spacing: .03em;
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+
+  button:hover { background: rgba(103, 232, 255, .12); border-color: rgba(103, 232, 255, .38); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  .control { margin-top: 13px; }
+
+  .control-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: #b8c8df;
+    font-size: 12px;
+  }
+
+  output {
+    color: var(--cyan);
+    font: 600 11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 16px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, rgba(103,232,255,.72), rgba(170,140,255,.35));
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    width: 13px;
+    height: 13px;
+    margin-top: -5px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid #e8fbff;
+    border-radius: 50%;
+    background: #6ee9ff;
+    box-shadow: 0 0 12px rgba(103, 232, 255, .8);
+  }
+
+  input[type="range"]::-moz-range-track { height: 3px; border: 0; border-radius: 5px; background: rgba(117, 181, 225, .4); }
+  input[type="range"]::-moz-range-progress { height: 3px; border-radius: 5px; background: rgba(103, 232, 255, .7); }
+  input[type="range"]::-moz-range-thumb { width: 11px; height: 11px; border: 2px solid #e8fbff; border-radius: 50%; background: #6ee9ff; box-shadow: 0 0 12px rgba(103, 232, 255, .8); }
+
+  .readout {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 17px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(153, 205, 255, .1);
+    color: #7f94b2;
+    font: 500 10px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .readout span:last-child { color: #9fdfee; text-align: right; }
+
+  .drag-readout {
+    position: fixed;
+    z-index: 5;
+    left: 50%;
+    bottom: max(23px, env(safe-area-inset-bottom));
+    padding: 9px 14px;
+    border: 1px solid rgba(103, 232, 255, .18);
+    border-radius: 999px;
+    color: #bfeeff;
+    background: rgba(3, 10, 24, .62);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(14px);
+    font: 600 10px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    transform: translate(-50%, 15px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+
+  .drag-readout.visible { opacity: 1; transform: translate(-50%, 0); }
+
+  .mode-chip {
+    position: fixed;
+    z-index: 5;
+    top: max(22px, env(safe-area-inset-top));
+    right: max(22px, env(safe-area-inset-right));
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: rgba(190, 213, 238, .65);
+    font: 600 10px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .mode-chip::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan));
+    box-shadow: 0 0 9px rgba(103, 232, 255, .6);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: .45; transform: scale(.8); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+
+  @media (max-width: 620px) {
+    .panel { top: 12px; left: 12px; width: min(310px, calc(100vw - 24px)); }
+    .panel summary { min-height: 82px; padding: 16px 48px 14px 16px; }
+    .panel summary::after { top: 16px; right: 14px; }
+    .panel-content { padding: 0 16px 16px; max-height: min(68vh, 480px); overflow: auto; }
+    .title { font-size: 22px; }
+    .mode-chip { display: none; }
+  }
+
+  @media (max-height: 690px) and (min-width: 621px) {
+    .panel-content { max-height: calc(100vh - 135px); overflow: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse { animation: none; opacity: .8; }
+    button, .drag-readout { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main id="stage">
+  <canvas id="backdrop" aria-hidden="true"></canvas>
+  <canvas id="trails" aria-hidden="true"></canvas>
+  <canvas id="universe" tabindex="0" aria-label="Interactive cosmic gravity simulation. Drag through space to launch a star. Move the pointer near particles to stir them. Hold Shift and click to create a black hole."></canvas>
+</main>
+
+<div class="vignette" aria-hidden="true"></div>
+
+<details class="panel" id="panel" open>
+  <summary>
+    <span class="eyebrow"><span class="pulse" aria-hidden="true"></span>Live gravity field</span>
+    <span class="title">Cosmic Gravity<br>Playground</span>
+  </summary>
+  <div class="panel-content">
+    <p class="instructions"><strong>Drag to launch a star.</strong> Move nearby to stir the dust. <strong>Shift + click</strong> opens a black hole.</p>
+    <div class="button-row">
+      <button id="pause" type="button" aria-pressed="false">Ⅱ&nbsp;&nbsp;Pause</button>
+      <button id="reset" type="button">↻&nbsp;&nbsp;Reset</button>
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="speed">Simulation speed</label><output id="speed-value">1.00×</output></div>
+      <input id="speed" type="range" min="0.25" max="2.5" step="0.05" value="1" aria-label="Simulation speed">
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="gravity">Gravity strength</label><output id="gravity-value">1.00 G</output></div>
+      <input id="gravity" type="range" min="0.35" max="2.2" step="0.05" value="1" aria-label="Gravity strength">
+    </div>
+    <div class="control">
+      <div class="control-head"><label for="density">Particle density</label><output id="density-value">480</output></div>
+      <input id="density" type="range" min="180" max="720" step="60" value="480" aria-label="Particle density">
+    </div>
+    <div class="readout" aria-hidden="true"><span id="body-count">483 bodies</span><span id="field-state">Field stable</span></div>
+  </div>
+</details>
+
+<div class="mode-chip" aria-hidden="true">Local gravity · cosmic expansion</div>
+<div class="drag-readout" id="drag-readout" aria-hidden="true">Release to ignite · 0 km/s</div>
+<div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const backdrop = document.getElementById("backdrop");
+  const trails = document.getElementById("trails");
+  const universe = document.getElementById("universe");
+  const back = backdrop.getContext("2d", { alpha: false });
+  const trail = trails.getContext("2d");
+  const view = universe.getContext("2d");
+  const pauseButton = document.getElementById("pause");
+  const resetButton = document.getElementById("reset");
+  const speedInput = document.getElementById("speed");
+  const gravityInput = document.getElementById("gravity");
+  const densityInput = document.getElementById("density");
+  const speedValue = document.getElementById("speed-value");
+  const gravityValue = document.getElementById("gravity-value");
+  const densityValue = document.getElementById("density-value");
+  const bodyCount = document.getElementById("body-count");
+  const fieldState = document.getElementById("field-state");
+  const dragReadout = document.getElementById("drag-readout");
+  const announcement = document.getElementById("announcement");
+
+  const TAU = Math.PI * 2;
+  const BASE_GRAVITY = 235;
+  const SOFTENING = 10;
+  const EXPANSION = 0.00032;
+  const FIXED_STEP = 1 / 90;
+  const MAX_FRAME_STEPS = 7;
+  const dustColours = ["#8deaff", "#b9c8ff", "#a88cff", "#ffd291", "#f7faff"];
+
+  let width = 0;
+  let height = 0;
+  let pixelRatio = 1;
+  let viewScale = 1;
+  let nebula = null;
+  let stars = [];
+  let bodies = [];
+  let effects = [];
+  let nextId = 1;
+  let random = mulberry32(0xC05C1C);
+  let paused = false;
+  let speed = 1;
+  let gravity = 1;
+  let density = 480;
+  let elapsed = 0;
+  let accumulator = 0;
+  let lastFrame = performance.now();
+  let smoothedFps = 60;
+  let lastReadout = 0;
+
+  const pointer = {
+    active: false,
+    down: false,
+    shift: false,
+    x: 0,
+    y: 0,
+    worldX: 0,
+    worldY: 0,
+    velocityX: 0,
+    velocityY: 0,
+    lastX: 0,
+    lastY: 0,
+    lastTime: 0,
+    startX: 0,
+    startY: 0,
+    startWorldX: 0,
+    startWorldY: 0,
+    pointerId: null
+  };
+
+  function mulberry32(seed) {
+    return function seededRandom() {
+      seed |= 0;
+      seed = seed + 0x6D2B79F5 | 0;
+      let value = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      value = value + Math.imul(value ^ value >>> 7, 61 | value) ^ value;
+      return ((value ^ value >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function range(minimum, maximum) { return minimum + random() * (maximum - minimum); }
+  function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
+
+  function configureCanvas(canvas, context) {
+    canvas.width = Math.ceil(width * pixelRatio);
+    canvas.height = Math.ceil(height * pixelRatio);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  }
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
+    viewScale = clamp(Math.min(width / 1360, height / 780), 0.68, 1.2);
+    configureCanvas(backdrop, back);
+    configureCanvas(trails, trail);
+    configureCanvas(universe, view);
+    trail.clearRect(0, 0, width, height);
+    createBackground();
+  }
+
+  function smoothNoise(x, y, seed) {
+    const hash = (ix, iy) => {
+      const value = Math.sin(ix * 127.1 + iy * 311.7 + seed * 74.7) * 43758.5453;
+      return value - Math.floor(value);
+    };
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    const fx = x - ix;
+    const fy = y - iy;
+    const ux = fx * fx * (3 - 2 * fx);
+    const uy = fy * fy * (3 - 2 * fy);
+    const a = hash(ix, iy);
+    const b = hash(ix + 1, iy);
+    const c = hash(ix, iy + 1);
+    const d = hash(ix + 1, iy + 1);
+    return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+  }
+
+  function fractalNoise(x, y) {
+    let value = 0;
+    let amplitude = .58;
+    let frequency = 1;
+    for (let octave = 0; octave < 4; octave++) {
+      value += smoothNoise(x * frequency, y * frequency, octave + 2) * amplitude;
+      frequency *= 2.03;
+      amplitude *= .48;
+    }
+    return value;
+  }
+
+  function createBackground() {
+    const nebulaWidth = Math.min(480, Math.max(240, Math.round(width / 3)));
+    const nebulaHeight = Math.min(280, Math.max(150, Math.round(height / 3)));
+    nebula = document.createElement("canvas");
+    nebula.width = nebulaWidth;
+    nebula.height = nebulaHeight;
+    const context = nebula.getContext("2d");
+    const image = context.createImageData(nebulaWidth, nebulaHeight);
+    const pixels = image.data;
+
+    for (let y = 0; y < nebulaHeight; y++) {
+      for (let x = 0; x < nebulaWidth; x++) {
+        const nx = x / nebulaWidth;
+        const ny = y / nebulaHeight;
+        const waveA = Math.exp(-Math.pow((ny - .58 - Math.sin(nx * 5.2) * .13) / .22, 2));
+        const waveB = Math.exp(-Math.pow((ny - .28 + Math.cos(nx * 7.4) * .1) / .17, 2));
+        const cloud = fractalNoise(nx * 4.2, ny * 4.2);
+        const cyan = waveA * cloud * (1 - nx * .38);
+        const violet = waveB * cloud * (.3 + nx * .82);
+        const dust = Math.max(0, cloud - .48) * .34;
+        const index = (y * nebulaWidth + x) * 4;
+        pixels[index] = Math.round(8 + violet * 46 + dust * 22);
+        pixels[index + 1] = Math.round(14 + cyan * 50 + violet * 18 + dust * 18);
+        pixels[index + 2] = Math.round(31 + cyan * 88 + violet * 96 + dust * 34);
+        pixels[index + 3] = Math.round(clamp((cyan + violet) * 72 + dust * 50, 0, 105));
+      }
+    }
+    context.putImageData(image, 0, 0);
+
+    const starRandom = mulberry32(0x57A42);
+    const starCount = Math.round(clamp(width * height / 3100, 260, 560));
+    stars = Array.from({ length: starCount }, () => ({
+      x: starRandom() * width,
+      y: starRandom() * height,
+      size: starRandom() < .94 ? starRandom() * 1.05 + .15 : starRandom() * 1.7 + 1,
+      alpha: starRandom() * .66 + .16,
+      depth: starRandom(),
+      phase: starRandom() * TAU,
+      tint: starRandom() < .16 ? 1 : starRandom() < .12 ? 2 : 0
+    }));
+  }
+
+  function project(x, y) {
+    return { x: width * .5 + x * viewScale, y: height * .5 + y * viewScale };
+  }
+
+  function unproject(x, y) {
+    return { x: (x - width * .5) / viewScale, y: (y - height * .5) / viewScale };
+  }
+
+  function radiusForMass(mass, kind) {
+    if (kind === "hole") return 7 + Math.sqrt(mass) * .15;
+    if (kind === "star") return 2.8 + Math.pow(mass, .34) * .78;
+    return .35 + Math.pow(mass, .36) * .62;
+  }
+
+  function newBody(options) {
+    const body = {
+      id: nextId++,
+      kind: options.kind || "dust",
+      x: options.x,
+      y: options.y,
+      previousX: options.x,
+      previousY: options.y,
+      vx: options.vx || 0,
+      vy: options.vy || 0,
+      ax: 0,
+      ay: 0,
+      mass: options.mass,
+      radius: options.radius || radiusForMass(options.mass, options.kind || "dust"),
+      colour: options.colour || dustColours[Math.floor(random() * dustColours.length)],
+      luminosity: options.luminosity ?? range(.4, 1),
+      phase: random() * TAU,
+      age: 0
+    };
+    bodies.push(body);
+    return body;
+  }
+
+  function orbitalSpeed(primaryMass, radius) {
+    return Math.sqrt(BASE_GRAVITY * gravity * primaryMass / Math.max(radius, 24));
+  }
+
+  function addOrbitalDust(primary, count, minimumRadius, maximumRadius, options = {}) {
+    const flatten = options.flatten ?? .68;
+    const direction = options.direction ?? 1;
+    const tilt = options.tilt || 0;
+    const cosineTilt = Math.cos(tilt);
+    const sineTilt = Math.sin(tilt);
+
+    for (let index = 0; index < count; index++) {
+      const radius = minimumRadius + Math.pow(random(), .64) * (maximumRadius - minimumRadius);
+      const arm = index % (options.arms || 3);
+      const theta = random() * TAU + radius * (options.twist || .018) + arm * TAU / (options.arms || 3);
+      const scatter = range(-9, 9) * (radius / maximumRadius + .2);
+      const localX = Math.cos(theta) * (radius + scatter);
+      const localY = Math.sin(theta) * (radius + scatter) * flatten;
+      const rotatedX = localX * cosineTilt - localY * sineTilt;
+      const rotatedY = localX * sineTilt + localY * cosineTilt;
+      const tangentX = -Math.sin(theta) * cosineTilt - Math.cos(theta) * flatten * sineTilt;
+      const tangentY = -Math.sin(theta) * sineTilt + Math.cos(theta) * flatten * cosineTilt;
+      const tangentLength = Math.hypot(tangentX, tangentY) || 1;
+      const speedAtRadius = orbitalSpeed(primary.mass, radius) * range(.88, 1.11) * direction;
+      const mass = random() < .055 ? range(1.6, 5.5) : range(.12, .95);
+      const palette = options.palette || dustColours;
+
+      newBody({
+        kind: "dust",
+        x: primary.x + rotatedX,
+        y: primary.y + rotatedY,
+        vx: primary.vx + tangentX / tangentLength * speedAtRadius + range(-1.2, 1.2),
+        vy: primary.vy + tangentY / tangentLength * speedAtRadius + range(-1.2, 1.2),
+        mass,
+        colour: palette[Math.floor(random() * palette.length)],
+        luminosity: range(.35, 1)
+      });
+    }
+  }
+
+  function addWanderer() {
+    const angle = random() * TAU;
+    const radius = range(480, 690);
+    const central = bodies.find(body => body.kind === "star" && body.mass > 2000);
+    const speedAtRadius = orbitalSpeed(central ? central.mass : 2200, radius) * range(.82, 1.05);
+    newBody({
+      kind: "dust",
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius * .62,
+      vx: -Math.sin(angle) * speedAtRadius,
+      vy: Math.cos(angle) * speedAtRadius,
+      mass: range(.14, .9),
+      colour: dustColours[Math.floor(random() * dustColours.length)],
+      luminosity: range(.3, .85)
+    });
+  }
+
+  function reset() {
+    random = mulberry32(0xC05C1C);
+    bodies = [];
+    effects = [];
+    nextId = 1;
+    elapsed = 0;
+    accumulator = 0;
+    trail.clearRect(0, 0, width, height);
+
+    const central = newBody({ kind: "star", x: -90, y: 5, vx: -1.4, vy: 1.1, mass: 2550, colour: "#9beeff", luminosity: 1.35 });
+    const singularity = newBody({ kind: "hole", x: 365, y: 62, vx: -3.5, vy: 36, mass: 1280, colour: "#b284ff", luminosity: 1.2 });
+    const companion = newBody({ kind: "star", x: -420, y: -205, vx: 23, vy: -21, mass: 590, colour: "#ffd27c", luminosity: 1.15 });
+
+    const centralCount = Math.floor(density * .67);
+    const companionCount = Math.floor(density * .22);
+    const singularityCount = density - centralCount - companionCount;
+    addOrbitalDust(central, centralCount, 38, 355, { flatten: .57, tilt: -.12, arms: 4, twist: .021, palette: ["#8deaff", "#b7c8ff", "#f6fbff", "#9f8fff"] });
+    addOrbitalDust(companion, companionCount, 25, 128, { flatten: .72, tilt: .42, arms: 2, twist: -.025, direction: -1, palette: ["#ffd27c", "#ff9f7f", "#f8f2db"] });
+    addOrbitalDust(singularity, singularityCount, 28, 145, { flatten: .36, tilt: -.5, arms: 2, twist: .028, palette: ["#c297ff", "#68e7ff", "#fff3dd"] });
+
+    effects.push({ kind: "wave", x: central.x, y: central.y, age: 0, duration: 2.4, colour: "#67e8ff", strength: .45 });
+    updateReadout(true);
+    announcement.textContent = "Cosmos reset with three gravitational systems and " + density + " particles.";
+  }
+
+  function setDensity(nextDensity) {
+    density = nextDensity;
+    const dust = bodies.filter(body => body.kind === "dust");
+    if (dust.length > density) {
+      let removeCount = dust.length - density;
+      bodies = bodies.filter(body => body.kind !== "dust" || removeCount-- <= 0);
+    } else {
+      for (let index = dust.length; index < density; index++) addWanderer();
+    }
+    updateReadout(true);
+  }
+
+  function addAcceleration(body, sourceX, sourceY, sourceMass) {
+    const deltaX = sourceX - body.x;
+    const deltaY = sourceY - body.y;
+    const distanceSquared = deltaX * deltaX + deltaY * deltaY + SOFTENING * SOFTENING;
+    const inverseDistance = 1 / Math.sqrt(distanceSquared);
+    const acceleration = BASE_GRAVITY * gravity * sourceMass * inverseDistance / distanceSquared;
+    body.ax += deltaX * acceleration;
+    body.ay += deltaY * acceleration;
+  }
+
+  function buildGravityField() {
+    const cellSize = 132;
+    const cellsByKey = new Map();
+    const massive = [];
+    for (const body of bodies) {
+      if (body.kind !== "dust") {
+        massive.push(body);
+        continue;
+      }
+      const column = Math.floor(body.x / cellSize);
+      const row = Math.floor(body.y / cellSize);
+      const key = column + ":" + row;
+      let cell = cellsByKey.get(key);
+      if (!cell) {
+        cell = { column, row, mass: 0, weightedX: 0, weightedY: 0, centreX: 0, centreY: 0, items: [] };
+        cellsByKey.set(key, cell);
+      }
+      cell.mass += body.mass;
+      cell.weightedX += body.x * body.mass;
+      cell.weightedY += body.y * body.mass;
+      cell.items.push(body);
+    }
+    const cells = Array.from(cellsByKey.values());
+    for (const cell of cells) {
+      cell.centreX = cell.weightedX / cell.mass;
+      cell.centreY = cell.weightedY / cell.mass;
+    }
+    return { cellSize, cells, massive };
+  }
+
+  function accumulateFieldAcceleration(body, field) {
+    for (const source of field.massive) {
+      if (source !== body) addAcceleration(body, source.x, source.y, source.mass);
+    }
+
+    if (body.kind !== "dust") {
+      for (const cell of field.cells) addAcceleration(body, cell.centreX, cell.centreY, cell.mass);
+      return;
+    }
+
+    const bodyColumn = Math.floor(body.x / field.cellSize);
+    const bodyRow = Math.floor(body.y / field.cellSize);
+    for (const cell of field.cells) {
+      if (cell.column === bodyColumn && cell.row === bodyRow) {
+        for (const neighbour of cell.items) {
+          if (neighbour !== body) addAcceleration(body, neighbour.x, neighbour.y, neighbour.mass);
+        }
+      } else {
+        addAcceleration(body, cell.centreX, cell.centreY, cell.mass);
+      }
+    }
+  }
+
+  function stirParticles(deltaTime) {
+    if (!pointer.active || pointer.down) return;
+    const influence = 132 / viewScale;
+    for (const body of bodies) {
+      if (body.kind !== "dust") continue;
+      const deltaX = body.x - pointer.worldX;
+      const deltaY = body.y - pointer.worldY;
+      const distance = Math.hypot(deltaX, deltaY);
+      if (distance >= influence || distance < 1) continue;
+      const falloff = Math.pow(1 - distance / influence, 2);
+      const pointerVX = pointer.velocityX / viewScale;
+      const pointerVY = pointer.velocityY / viewScale;
+      body.vx += (pointerVX * .028 - deltaY / distance * 18) * falloff * deltaTime;
+      body.vy += (pointerVY * .028 + deltaX / distance * 18) * falloff * deltaTime;
+    }
+  }
+
+  function handleAccretion() {
+    const massive = bodies.filter(body => body.kind !== "dust");
+    const consumed = new Set();
+    for (const dust of bodies) {
+      if (dust.kind !== "dust") continue;
+      for (const core of massive) {
+        const distance = Math.hypot(dust.x - core.x, dust.y - core.y);
+        if (distance < core.radius * (core.kind === "hole" ? 1.05 : .72)) {
+          core.mass += dust.mass * .035;
+          core.radius = radiusForMass(core.mass, core.kind);
+          consumed.add(dust.id);
+          if (random() < .11) effects.push({ kind: "spark", x: dust.x, y: dust.y, age: 0, duration: .55, colour: dust.colour, strength: 1 });
+          break;
+        }
+      }
+    }
+    if (consumed.size) {
+      bodies = bodies.filter(body => !consumed.has(body.id));
+      while (bodies.filter(body => body.kind === "dust").length < density) addWanderer();
+    }
+
+    for (let first = 0; first < massive.length; first++) {
+      for (let second = first + 1; second < massive.length; second++) {
+        const a = massive[first];
+        const b = massive[second];
+        if (consumed.has(a.id) || consumed.has(b.id)) continue;
+        const distance = Math.hypot(a.x - b.x, a.y - b.y);
+        if (distance > (a.radius + b.radius) * .62) continue;
+        const totalMass = a.mass + b.mass;
+        const mergedKind = a.kind === "hole" || b.kind === "hole" || totalMass > 2900 ? "hole" : "star";
+        const mergedX = (a.x * a.mass + b.x * b.mass) / totalMass;
+        const mergedY = (a.y * a.mass + b.y * b.mass) / totalMass;
+        const mergedVX = (a.vx * a.mass + b.vx * b.mass) / totalMass;
+        const mergedVY = (a.vy * a.mass + b.vy * b.mass) / totalMass;
+        consumed.add(a.id);
+        consumed.add(b.id);
+        effects.push({ kind: "wave", x: mergedX, y: mergedY, age: 0, duration: 2.1, colour: mergedKind === "hole" ? "#bd8cff" : "#dffaff", strength: 1.5 });
+        newBody({ kind: mergedKind, x: mergedX, y: mergedY, vx: mergedVX, vy: mergedVY, mass: totalMass * .985, colour: mergedKind === "hole" ? "#b284ff" : "#dffaff", luminosity: 1.5 });
+      }
+    }
+    if (consumed.size) bodies = bodies.filter(body => !consumed.has(body.id));
+  }
+
+  function respawnEscapedDust(body) {
+    const boundary = Math.max(width, height) / viewScale * 1.35 + 600;
+    if (Math.abs(body.x) < boundary && Math.abs(body.y) < boundary) return;
+    const angle = random() * TAU;
+    const radius = range(450, 660);
+    body.x = Math.cos(angle) * radius;
+    body.y = Math.sin(angle) * radius * .68;
+    body.previousX = body.x;
+    body.previousY = body.y;
+    const speedAtRadius = orbitalSpeed(2200, radius) * range(.8, 1.08);
+    body.vx = -Math.sin(angle) * speedAtRadius;
+    body.vy = Math.cos(angle) * speedAtRadius;
+  }
+
+  function step(deltaTime) {
+    const field = buildGravityField();
+    for (const body of bodies) {
+      body.previousX = body.x;
+      body.previousY = body.y;
+      body.ax = body.x * EXPANSION;
+      body.ay = body.y * EXPANSION;
+      accumulateFieldAcceleration(body, field);
+    }
+    stirParticles(deltaTime);
+    const damping = Math.pow(.99985, deltaTime * 60);
+    for (const body of bodies) {
+      body.vx = (body.vx + body.ax * deltaTime) * damping;
+      body.vy = (body.vy + body.ay * deltaTime) * damping;
+      const velocity = Math.hypot(body.vx, body.vy);
+      if (velocity > 520) {
+        body.vx *= 520 / velocity;
+        body.vy *= 520 / velocity;
+      }
+      body.x += body.vx * deltaTime;
+      body.y += body.vy * deltaTime;
+      body.age += deltaTime;
+      if (body.kind === "dust") respawnEscapedDust(body);
+    }
+    elapsed += deltaTime;
+    if (Math.floor(elapsed * 15) !== Math.floor((elapsed - deltaTime) * 15)) handleAccretion();
+    for (const effect of effects) effect.age += deltaTime;
+    effects = effects.filter(effect => effect.age < effect.duration);
+  }
+
+  function renderBackground(time) {
+    const baseGradient = back.createRadialGradient(width * .55, height * .48, 0, width * .5, height * .5, Math.max(width, height) * .76);
+    baseGradient.addColorStop(0, "#071326");
+    baseGradient.addColorStop(.43, "#040a17");
+    baseGradient.addColorStop(1, "#010309");
+    back.fillStyle = baseGradient;
+    back.fillRect(0, 0, width, height);
+
+    back.save();
+    back.globalCompositeOperation = "screen";
+    back.globalAlpha = .74;
+    back.imageSmoothingEnabled = true;
+    back.drawImage(nebula, -20, -15, width + 40, height + 30);
+    back.restore();
+
+    const parallaxX = pointer.active ? (pointer.x / Math.max(width, 1) - .5) : 0;
+    const parallaxY = pointer.active ? (pointer.y / Math.max(height, 1) - .5) : 0;
+    back.save();
+    back.globalCompositeOperation = "lighter";
+    for (const star of stars) {
+      const twinkle = .72 + Math.sin(time * (.0007 + star.depth * .00055) + star.phase) * .28;
+      const x = star.x - parallaxX * (2 + star.depth * 10);
+      const y = star.y - parallaxY * (2 + star.depth * 10);
+      back.globalAlpha = star.alpha * twinkle;
+      back.fillStyle = star.tint === 1 ? "#aeeeff" : star.tint === 2 ? "#ffd6a5" : "#e9f1ff";
+      if (star.size > 1.45) {
+        back.shadowColor = back.fillStyle;
+        back.shadowBlur = 7;
+      } else {
+        back.shadowBlur = 0;
+      }
+      back.fillRect(x, y, star.size, star.size);
+    }
+    back.restore();
+  }
+
+  function renderTrails() {
+    trail.save();
+    trail.globalCompositeOperation = "destination-out";
+    trail.fillStyle = "rgba(0, 0, 0, .026)";
+    trail.fillRect(0, 0, width, height);
+    trail.restore();
+
+    trail.save();
+    trail.globalCompositeOperation = "lighter";
+    trail.lineCap = "round";
+    for (const body of bodies) {
+      const from = project(body.previousX, body.previousY);
+      const to = project(body.x, body.y);
+      if ((from.x < -30 && to.x < -30) || (from.x > width + 30 && to.x > width + 30) || (from.y < -30 && to.y < -30) || (from.y > height + 30 && to.y > height + 30)) continue;
+      trail.beginPath();
+      trail.moveTo(from.x, from.y);
+      trail.lineTo(to.x, to.y);
+      trail.strokeStyle = body.colour;
+      trail.globalAlpha = body.kind === "dust" ? .22 * body.luminosity : .44;
+      trail.lineWidth = body.kind === "dust" ? clamp(body.radius * viewScale * .42, .35, 1.25) : clamp(body.radius * viewScale * .17, 1, 2.4);
+      trail.stroke();
+    }
+    trail.restore();
+  }
+
+  function drawDust(body) {
+    const point = project(body.x, body.y);
+    const size = clamp(body.radius * viewScale, .42, 2.7);
+    if (point.x < -8 || point.x > width + 8 || point.y < -8 || point.y > height + 8) return;
+    view.globalAlpha = clamp(.34 + body.luminosity * .65, .2, 1);
+    view.fillStyle = body.colour;
+    if (size < .85) {
+      view.fillRect(point.x, point.y, size, size);
+    } else {
+      view.shadowColor = body.colour;
+      view.shadowBlur = size * 4.5;
+      view.beginPath();
+      view.arc(point.x, point.y, size, 0, TAU);
+      view.fill();
+      view.shadowBlur = 0;
+    }
+  }
+
+  function drawStar(body) {
+    const point = project(body.x, body.y);
+    const radius = Math.max(4, body.radius * viewScale);
+    if (point.x < -radius * 8 || point.x > width + radius * 8 || point.y < -radius * 8 || point.y > height + radius * 8) return;
+    const pulse = 1 + Math.sin(elapsed * 2.1 + body.phase) * .035;
+    const glow = view.createRadialGradient(point.x, point.y, 0, point.x, point.y, radius * 5.7 * pulse);
+    glow.addColorStop(0, "rgba(255,255,255,.98)");
+    glow.addColorStop(.08, body.colour);
+    glow.addColorStop(.29, body.colour + "88");
+    glow.addColorStop(.62, body.colour + "24");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    view.globalAlpha = clamp(body.luminosity, .55, 1.45);
+    view.fillStyle = glow;
+    view.beginPath();
+    view.arc(point.x, point.y, radius * 5.7 * pulse, 0, TAU);
+    view.fill();
+
+    view.globalAlpha = .72;
+    view.strokeStyle = body.colour;
+    view.lineWidth = .65;
+    view.beginPath();
+    view.arc(point.x, point.y, radius * 1.55, 0, TAU);
+    view.stroke();
+    view.globalAlpha = 1;
+    view.fillStyle = "#f8fdff";
+    view.shadowColor = body.colour;
+    view.shadowBlur = radius * 1.6;
+    view.beginPath();
+    view.arc(point.x, point.y, radius * .42, 0, TAU);
+    view.fill();
+    view.shadowBlur = 0;
+
+    view.globalAlpha = .35;
+    view.strokeStyle = "#f4fdff";
+    view.beginPath();
+    view.moveTo(point.x - radius * 2.2, point.y);
+    view.lineTo(point.x + radius * 2.2, point.y);
+    view.moveTo(point.x, point.y - radius * 2.2);
+    view.lineTo(point.x, point.y + radius * 2.2);
+    view.stroke();
+  }
+
+  function drawBlackHole(body) {
+    const point = project(body.x, body.y);
+    const radius = Math.max(8, body.radius * viewScale);
+    if (point.x < -radius * 7 || point.x > width + radius * 7 || point.y < -radius * 7 || point.y > height + radius * 7) return;
+    const rotation = elapsed * .34 + body.phase;
+    const glow = view.createRadialGradient(point.x, point.y, radius * .55, point.x, point.y, radius * 5.2);
+    glow.addColorStop(0, "rgba(3,1,10,1)");
+    glow.addColorStop(.18, "rgba(5,2,12,1)");
+    glow.addColorStop(.24, "rgba(255,239,211,.92)");
+    glow.addColorStop(.3, "rgba(180,117,255,.58)");
+    glow.addColorStop(.48, "rgba(79,218,255,.17)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    view.globalAlpha = .95;
+    view.fillStyle = glow;
+    view.beginPath();
+    view.arc(point.x, point.y, radius * 5.2, 0, TAU);
+    view.fill();
+
+    view.save();
+    view.translate(point.x, point.y);
+    view.rotate(rotation);
+    view.globalCompositeOperation = "lighter";
+    view.lineCap = "round";
+    for (let ring = 0; ring < 3; ring++) {
+      view.globalAlpha = .5 - ring * .11;
+      view.strokeStyle = ring === 1 ? "#67e8ff" : ring === 2 ? "#8f73ff" : "#ffe8bc";
+      view.lineWidth = Math.max(.7, radius * (.12 - ring * .018));
+      view.beginPath();
+      view.ellipse(0, 0, radius * (1.72 + ring * .48), radius * (.34 + ring * .11), ring * .36, ring * .62, Math.PI * (1.45 + ring * .17));
+      view.stroke();
+    }
+    view.restore();
+
+    view.globalCompositeOperation = "source-over";
+    view.globalAlpha = 1;
+    view.fillStyle = "#000107";
+    view.shadowColor = "#000";
+    view.shadowBlur = radius;
+    view.beginPath();
+    view.arc(point.x, point.y, radius * .82, 0, TAU);
+    view.fill();
+    view.shadowBlur = 0;
+    view.strokeStyle = "rgba(255,247,227,.82)";
+    view.lineWidth = Math.max(.65, radius * .055);
+    view.beginPath();
+    view.arc(point.x, point.y, radius * 1.08, rotation, rotation + Math.PI * 1.3);
+    view.stroke();
+  }
+
+  function drawEffects() {
+    for (const effect of effects) {
+      const point = project(effect.x, effect.y);
+      const progress = effect.age / effect.duration;
+      if (effect.kind === "wave") {
+        const radius = (18 + progress * 150 * effect.strength) * viewScale;
+        view.globalAlpha = Math.pow(1 - progress, 1.8) * .65;
+        view.strokeStyle = effect.colour;
+        view.lineWidth = Math.max(.6, (2.2 - progress * 1.5) * effect.strength);
+        view.shadowColor = effect.colour;
+        view.shadowBlur = 12;
+        view.beginPath();
+        view.arc(point.x, point.y, radius, 0, TAU);
+        view.stroke();
+        view.shadowBlur = 0;
+      } else {
+        const radius = (2 + progress * 22) * viewScale;
+        view.globalAlpha = (1 - progress) * .8;
+        view.fillStyle = effect.colour;
+        view.beginPath();
+        view.arc(point.x, point.y, radius * .17, 0, TAU);
+        view.fill();
+      }
+    }
+  }
+
+  function directGravityAt(x, y) {
+    let axisX = x * EXPANSION;
+    let axisY = y * EXPANSION;
+    for (const body of bodies) {
+      if (body.kind === "dust") continue;
+      const deltaX = body.x - x;
+      const deltaY = body.y - y;
+      const distanceSquared = deltaX * deltaX + deltaY * deltaY + SOFTENING * SOFTENING;
+      const factor = BASE_GRAVITY * gravity * body.mass / (distanceSquared * Math.sqrt(distanceSquared));
+      axisX += deltaX * factor;
+      axisY += deltaY * factor;
+    }
+    return { x: axisX, y: axisY };
+  }
+
+  function launchVelocity() {
+    const deltaX = (pointer.x - pointer.startX) / viewScale;
+    const deltaY = (pointer.y - pointer.startY) / viewScale;
+    const magnitude = Math.hypot(deltaX, deltaY);
+    const multiplier = Math.min(.28, .19 + magnitude * .00035);
+    const velocityX = deltaX * multiplier;
+    const velocityY = deltaY * multiplier;
+    const speedMagnitude = Math.hypot(velocityX, velocityY);
+    if (speedMagnitude <= 145) return { x: velocityX, y: velocityY, speed: speedMagnitude };
+    return { x: velocityX * 145 / speedMagnitude, y: velocityY * 145 / speedMagnitude, speed: 145 };
+  }
+
+  function drawArrow(fromX, fromY, toX, toY, colour) {
+    const angle = Math.atan2(toY - fromY, toX - fromX);
+    view.strokeStyle = colour;
+    view.fillStyle = colour;
+    view.lineWidth = 1.2;
+    view.beginPath();
+    view.moveTo(fromX, fromY);
+    view.lineTo(toX, toY);
+    view.stroke();
+    view.beginPath();
+    view.moveTo(toX, toY);
+    view.lineTo(toX - Math.cos(angle - .52) * 10, toY - Math.sin(angle - .52) * 10);
+    view.lineTo(toX - Math.cos(angle + .52) * 10, toY - Math.sin(angle + .52) * 10);
+    view.closePath();
+    view.fill();
+  }
+
+  function drawDragPreview() {
+    if (!pointer.down) return;
+    const velocity = launchVelocity();
+    const origin = project(pointer.startWorldX, pointer.startWorldY);
+    const colour = pointer.shift ? "#c08cff" : "#77ecff";
+    view.save();
+    view.globalCompositeOperation = "lighter";
+    view.shadowColor = colour;
+    view.shadowBlur = 10;
+    view.globalAlpha = .92;
+    drawArrow(origin.x, origin.y, pointer.x, pointer.y, colour);
+    view.shadowBlur = 0;
+
+    let x = pointer.startWorldX;
+    let y = pointer.startWorldY;
+    let velocityX = velocity.x;
+    let velocityY = velocity.y;
+    const previewStep = .14;
+    view.beginPath();
+    view.moveTo(origin.x, origin.y);
+    for (let index = 0; index < 34; index++) {
+      const acceleration = directGravityAt(x, y);
+      velocityX += acceleration.x * previewStep;
+      velocityY += acceleration.y * previewStep;
+      x += velocityX * previewStep;
+      y += velocityY * previewStep;
+      const point = project(x, y);
+      if (index % 2 === 0) view.lineTo(point.x, point.y);
+      else view.moveTo(point.x, point.y);
+    }
+    view.globalAlpha = .52;
+    view.strokeStyle = colour;
+    view.lineWidth = 1;
+    view.stroke();
+
+    view.globalAlpha = .9;
+    view.strokeStyle = colour;
+    view.lineWidth = 1.2;
+    view.beginPath();
+    view.arc(origin.x, origin.y, pointer.shift ? 16 : 10, 0, TAU);
+    view.stroke();
+    if (pointer.shift) {
+      view.fillStyle = "#010107";
+      view.beginPath();
+      view.arc(origin.x, origin.y, 7, 0, TAU);
+      view.fill();
+    }
+    view.restore();
+
+    dragReadout.textContent = (pointer.shift ? "Release singularity · " : "Release to ignite · ") + Math.round(velocity.speed * 42) + " km/s";
+  }
+
+  function drawPointerField(time) {
+    if (!pointer.active || pointer.down) return;
+    view.save();
+    view.globalCompositeOperation = "lighter";
+    const radius = 34 + Math.sin(time * .0022) * 3;
+    const glow = view.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, radius);
+    glow.addColorStop(0, "rgba(103,232,255,.09)");
+    glow.addColorStop(.56, "rgba(103,232,255,.025)");
+    glow.addColorStop(1, "rgba(103,232,255,0)");
+    view.fillStyle = glow;
+    view.beginPath();
+    view.arc(pointer.x, pointer.y, radius, 0, TAU);
+    view.fill();
+    view.strokeStyle = pointer.shift ? "rgba(190,139,255,.48)" : "rgba(103,232,255,.25)";
+    view.lineWidth = .7;
+    view.beginPath();
+    view.arc(pointer.x, pointer.y, 13, time * .001, time * .001 + Math.PI * 1.45);
+    view.stroke();
+    view.restore();
+  }
+
+  function render(time) {
+    renderBackground(time);
+    if (!paused) renderTrails();
+    view.clearRect(0, 0, width, height);
+    view.save();
+    view.globalCompositeOperation = "lighter";
+    for (const body of bodies) if (body.kind === "dust") drawDust(body);
+    view.restore();
+
+    for (const body of bodies) {
+      if (body.kind === "star") drawStar(body);
+      else if (body.kind === "hole") drawBlackHole(body);
+    }
+    view.save();
+    view.globalCompositeOperation = "lighter";
+    drawEffects();
+    drawPointerField(time);
+    drawDragPreview();
+    view.restore();
+
+    if (paused) {
+      view.save();
+      view.fillStyle = "rgba(1,4,12,.16)";
+      view.fillRect(0, 0, width, height);
+      view.fillStyle = "rgba(220,240,255,.58)";
+      view.font = "600 10px ui-monospace, SFMono-Regular, Consolas, monospace";
+      view.letterSpacing = "3px";
+      view.textAlign = "center";
+      view.fillText("COSMOS PAUSED", width * .5, height - 34);
+      view.restore();
+    }
+  }
+
+  function createObject(x, y, velocityX, velocityY, blackHole, dragDistance = 0) {
+    const mass = blackHole ? clamp(1350 + dragDistance * 4.2, 1350, 2450) : clamp(180 + dragDistance * 1.25, 180, 520);
+    const object = newBody({
+      kind: blackHole ? "hole" : "star",
+      x,
+      y,
+      vx: velocityX,
+      vy: velocityY,
+      mass,
+      colour: blackHole ? "#b284ff" : dragDistance > 150 ? "#ffd17b" : "#8deaff",
+      luminosity: blackHole ? 1.3 : 1.15
+    });
+    effects.push({ kind: "wave", x, y, age: 0, duration: blackHole ? 2.2 : 1.45, colour: object.colour, strength: blackHole ? 1.3 : .72 });
+    announcement.textContent = blackHole ? "Black hole created." : "Massive star launched.";
+    return object;
+  }
+
+  function updatePointer(event) {
+    const bounds = universe.getBoundingClientRect();
+    const now = performance.now();
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+    const interval = Math.max(12, now - pointer.lastTime) / 1000;
+    pointer.velocityX = clamp((x - pointer.lastX) / interval, -1800, 1800);
+    pointer.velocityY = clamp((y - pointer.lastY) / interval, -1800, 1800);
+    pointer.lastX = pointer.x = x;
+    pointer.lastY = pointer.y = y;
+    pointer.lastTime = now;
+    pointer.shift = event.shiftKey || pointer.shift && pointer.down;
+    const world = unproject(x, y);
+    pointer.worldX = world.x;
+    pointer.worldY = world.y;
+  }
+
+  function setPaused(nextPaused) {
+    paused = nextPaused;
+    pauseButton.setAttribute("aria-pressed", String(paused));
+    pauseButton.innerHTML = paused ? "▶&nbsp;&nbsp;Resume" : "Ⅱ&nbsp;&nbsp;Pause";
+    fieldState.textContent = paused ? "Time held" : "Field stable";
+    announcement.textContent = paused ? "Simulation paused." : "Simulation resumed.";
+  }
+
+  function updateReadout(force = false) {
+    const now = performance.now();
+    if (!force && now - lastReadout < 350) return;
+    lastReadout = now;
+    bodyCount.textContent = bodies.length + " bodies";
+    if (!paused) fieldState.textContent = Math.round(smoothedFps) + " fps · expanding";
+  }
+
+  function frame(now) {
+    const frameDelta = Math.min(.045, Math.max(0, (now - lastFrame) / 1000));
+    lastFrame = now;
+    if (frameDelta > 0) smoothedFps += (1 / frameDelta - smoothedFps) * .055;
+
+    if (!paused) {
+      accumulator += frameDelta * speed;
+      let steps = 0;
+      while (accumulator >= FIXED_STEP && steps < MAX_FRAME_STEPS) {
+        step(FIXED_STEP);
+        accumulator -= FIXED_STEP;
+        steps++;
+      }
+      if (steps === MAX_FRAME_STEPS) accumulator = 0;
+    }
+    render(now);
+    updateReadout();
+    requestAnimationFrame(frame);
+  }
+
+  universe.addEventListener("pointerenter", event => {
+    pointer.active = true;
+    pointer.lastX = event.clientX;
+    pointer.lastY = event.clientY;
+    pointer.lastTime = performance.now();
+    updatePointer(event);
+  });
+
+  universe.addEventListener("pointerleave", () => {
+    if (!pointer.down) pointer.active = false;
+  });
+
+  universe.addEventListener("pointermove", event => {
+    pointer.active = true;
+    updatePointer(event);
+  });
+
+  universe.addEventListener("pointerdown", event => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    updatePointer(event);
+    pointer.down = true;
+    pointer.shift = event.shiftKey;
+    pointer.startX = pointer.x;
+    pointer.startY = pointer.y;
+    pointer.startWorldX = pointer.worldX;
+    pointer.startWorldY = pointer.worldY;
+    pointer.pointerId = event.pointerId;
+    dragReadout.classList.add("visible");
+    universe.setPointerCapture(event.pointerId);
+  });
+
+  universe.addEventListener("pointerup", event => {
+    if (!pointer.down || event.pointerId !== pointer.pointerId) return;
+    updatePointer(event);
+    const screenDistance = Math.hypot(pointer.x - pointer.startX, pointer.y - pointer.startY);
+    const velocity = screenDistance < 6 ? { x: 0, y: 0 } : launchVelocity();
+    createObject(pointer.startWorldX, pointer.startWorldY, velocity.x, velocity.y, pointer.shift || event.shiftKey, screenDistance / viewScale);
+    pointer.down = false;
+    pointer.shift = event.shiftKey;
+    pointer.pointerId = null;
+    dragReadout.classList.remove("visible");
+    if (universe.hasPointerCapture(event.pointerId)) universe.releasePointerCapture(event.pointerId);
+  });
+
+  universe.addEventListener("pointercancel", event => {
+    pointer.down = false;
+    pointer.pointerId = null;
+    dragReadout.classList.remove("visible");
+    if (universe.hasPointerCapture(event.pointerId)) universe.releasePointerCapture(event.pointerId);
+  });
+
+  universe.addEventListener("contextmenu", event => event.preventDefault());
+
+  pauseButton.addEventListener("click", () => setPaused(!paused));
+  resetButton.addEventListener("click", reset);
+
+  speedInput.addEventListener("input", () => {
+    speed = Number(speedInput.value);
+    speedValue.textContent = speed.toFixed(2) + "×";
+  });
+
+  gravityInput.addEventListener("input", () => {
+    gravity = Number(gravityInput.value);
+    gravityValue.textContent = gravity.toFixed(2) + " G";
+  });
+
+  densityInput.addEventListener("input", () => {
+    const value = Number(densityInput.value);
+    densityValue.textContent = String(value);
+    setDensity(value);
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Shift") pointer.shift = true;
+    if ((event.key === " " || event.code === "Space") && !event.repeat && !event.target.closest("button, input, summary")) {
+      event.preventDefault();
+      setPaused(!paused);
+    }
+    if (event.key.toLowerCase() === "r" && !event.repeat && !event.target.closest("input")) reset();
+  });
+
+  document.addEventListener("keyup", event => {
+    if (event.key === "Shift" && !pointer.down) pointer.shift = false;
+  });
+
+  window.addEventListener("resize", resize, { passive: true });
+  resize();
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

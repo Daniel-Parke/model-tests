@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "siteUrl": "https://daniel-parke.github.io/model-tests/",
+  "repositoryUrl": "https://github.com/Daniel-Parke/model-tests",
+  "publicationChecked": "2026-09-05",
+  "experiments": [
+    {
+      "id": "cosmic-gravity",
+      "number": 1,
+      "title": "Cosmic Gravity",
+      "description": "One HTML file. A universe of different decisions.",
+      "path": "experiments/cosmic-gravity/",
+      "prompt": "HTML - Space/prompt.md",
+      "promptSha256": "84a214eba62a67243bc75e218103afab4aa68489a48a5decdfd4e1ea38c16706",
+      "featured": "astra-ultra",
+      "runs": [
+        {
+          "id": "astra-light",
+          "model": "Astra",
+          "effort": "Light",
+          "path": "HTML - Space/cosmic-gravity-astra-light.html",
+          "type": "html",
+          "sha256": "09feae48fec0face8ad86932913fb3131c69d6fcad7908e1953bbff3bbf4acdd",
+          "publication": "published",
+          "promptVariant": "original",
+          "poster": "assets/previews/astra-light.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "sol-light",
+          "model": "Sol",
+          "effort": "Light",
+          "path": "HTML - Space/cosmic-gravity-playground-sol-light.html",
+          "type": "html",
+          "sha256": "b58e2ff6dde0e91d33d04e1b36b9ece2d884c712f3c3d526400dff4f19f2cd69",
+          "publication": "published",
+          "promptVariant": "original",
+          "poster": "assets/previews/sol-light.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "astra-medium",
+          "model": "Astra",
+          "effort": "Medium",
+          "path": "HTML - Space/cosmic-gravity-astra-medium.html",
+          "type": "html",
+          "sha256": "09c0d273835713d6362aebdffc5016d8cb9d1a9f2c19ffbea39ac9d9d8215e0a",
+          "publication": "published",
+          "promptVariant": "original",
+          "poster": "assets/previews/astra-medium.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "sol-medium",
+          "model": "Sol",
+          "effort": "Medium",
+          "path": "HTML - Space/cosmic-gravity-playground-sol-medium.html",
+          "type": "html",
+          "sha256": "57c975e0ead003d7999b90994ed1ea9bea61d76d451dee24386d758b08406d2d",
+          "publication": "published",
+          "promptVariant": "original",
+          "poster": "assets/previews/sol-medium.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "astra-high",
+          "model": "Astra",
+          "effort": "High",
+          "path": "HTML - Space/cosmic-gravity-astra-high.html",
+          "type": "html",
+          "sha256": "c41552917a0961f6604a4f48c476928284b11426dcc16d8f2da91af17f171280",
+          "publication": "published",
+          "promptVariant": "labelled",
+          "poster": "assets/previews/astra-high.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "sol-high",
+          "model": "Sol",
+          "effort": "High",
+          "path": "HTML - Space/cosmic-gravity-sol-high.html",
+          "type": "html",
+          "sha256": "7b3aa72f96d99e8fb5d3626a4d7b2e04b16a5c980d13a813b957d80be61eb7e7",
+          "publication": "published",
+          "promptVariant": "labelled",
+          "poster": "assets/previews/sol-high.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "astra-extra-high",
+          "model": "Astra",
+          "effort": "Extra High",
+          "path": "HTML - Space/cosmic-gravity-astra-extra-high.html",
+          "type": "html",
+          "sha256": "1a890ee701500ccfb0f24bd0b445fdbd3aa1b86c4b571209275adcd5ff5cc79a",
+          "publication": "local",
+          "promptVariant": "labelled",
+          "poster": "assets/previews/astra-extra-high.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "sol-extra-high",
+          "model": "Sol",
+          "effort": "Extra High",
+          "path": "HTML - Space/cosmic-gravity-sol-extra-high.html",
+          "type": "html",
+          "sha256": "a8a09797f7906681901d24038b6fa3e57791b85220f831e8b58864525df2e89e",
+          "publication": "local",
+          "promptVariant": "labelled",
+          "poster": "assets/previews/sol-extra-high.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "astra-ultra",
+          "model": "Astra",
+          "effort": "Ultra",
+          "path": "HTML - Space/cosmic-gravity-astra-ultra.html",
+          "type": "html",
+          "sha256": "f5375bcd428543adaf91daca156c417f5904e392736d0f308f097ef67edbb9a7",
+          "publication": "local",
+          "promptVariant": "labelled",
+          "poster": "assets/previews/astra-ultra.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        },
+        {
+          "id": "sol-ultra",
+          "model": "Sol",
+          "effort": "Ultra",
+          "path": "HTML - Space/cosmic-gravity-sol-ultra.html",
+          "type": "html",
+          "sha256": "fc6393d940d0fab45f1d3c9ae2eaf04cab5e43651b09fc33b50b9c5f719703aa",
+          "publication": "local",
+          "promptVariant": "labelled",
+          "poster": "assets/previews/sol-ultra.webp",
+          "provenance": {
+            "runtime": "unknown",
+            "tools": "historical agent run; incomplete record",
+            "context": "not established as isolated",
+            "interventions": "unknown"
+          }
+        }
+      ],
+      "originalPromptSha256": "0189ea6155687c30433921c4dc251c7e10f7177fc2799368bd812150c0c9b3cc"
+    }
+  ]
+}

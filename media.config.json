@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "title": "Model Tests",
+  "subtitle": "Cosmic Gravity",
+  "brand": "PatterTech",
+  "url": "https://daniel-parke.github.io/model-tests/",
+  "output": ".media/cosmic-gravity",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "warmupMs": 3000,
+  "duration": 30,
+  "featured": "astra-ultra",
+  "sources": [
+    {
+      "id": "astra-light",
+      "label": "Astra / Light",
+      "path": "HTML - Space/cosmic-gravity-astra-light.html",
+      "sha256": "09feae48fec0face8ad86932913fb3131c69d6fcad7908e1953bbff3bbf4acdd",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "sol-light",
+      "label": "Sol / Light",
+      "path": "HTML - Space/cosmic-gravity-playground-sol-light.html",
+      "sha256": "b58e2ff6dde0e91d33d04e1b36b9ece2d884c712f3c3d526400dff4f19f2cd69",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "astra-medium",
+      "label": "Astra / Medium",
+      "path": "HTML - Space/cosmic-gravity-astra-medium.html",
+      "sha256": "09c0d273835713d6362aebdffc5016d8cb9d1a9f2c19ffbea39ac9d9d8215e0a",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "sol-medium",
+      "label": "Sol / Medium",
+      "path": "HTML - Space/cosmic-gravity-playground-sol-medium.html",
+      "sha256": "57c975e0ead003d7999b90994ed1ea9bea61d76d451dee24386d758b08406d2d",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "astra-high",
+      "label": "Astra / High",
+      "path": "HTML - Space/cosmic-gravity-astra-high.html",
+      "sha256": "c41552917a0961f6604a4f48c476928284b11426dcc16d8f2da91af17f171280",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "sol-high",
+      "label": "Sol / High",
+      "path": "HTML - Space/cosmic-gravity-sol-high.html",
+      "sha256": "7b3aa72f96d99e8fb5d3626a4d7b2e04b16a5c980d13a813b957d80be61eb7e7",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "astra-extra-high",
+      "label": "Astra / Extra High",
+      "path": "HTML - Space/cosmic-gravity-astra-extra-high.html",
+      "sha256": "1a890ee701500ccfb0f24bd0b445fdbd3aa1b86c4b571209275adcd5ff5cc79a",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "sol-extra-high",
+      "label": "Sol / Extra High",
+      "path": "HTML - Space/cosmic-gravity-sol-extra-high.html",
+      "sha256": "a8a09797f7906681901d24038b6fa3e57791b85220f831e8b58864525df2e89e",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "astra-ultra",
+      "label": "Astra / Ultra",
+      "path": "HTML - Space/cosmic-gravity-astra-ultra.html",
+      "sha256": "f5375bcd428543adaf91daca156c417f5904e392736d0f308f097ef67edbb9a7",
+      "type": "html",
+      "ready": "canvas"
+    },
+    {
+      "id": "sol-ultra",
+      "label": "Sol / Ultra",
+      "path": "HTML - Space/cosmic-gravity-sol-ultra.html",
+      "sha256": "fc6393d940d0fab45f1d3c9ae2eaf04cab5e43651b09fc33b50b9c5f719703aa",
+      "type": "html",
+      "ready": "canvas"
+    }
+  ],
+  "montage": [
+    "astra-light",
+    "sol-light",
+    "astra-medium",
+    "sol-medium",
+    "astra-high",
+    "sol-high",
+    "astra-extra-high",
+    "sol-extra-high",
+    "sol-ultra",
+    "astra-ultra"
+  ],
+  "actions": [
+    {
+      "at": 6,
+      "kind": "move",
+      "x": 0.57,
+      "y": 0.4
+    },
+    {
+      "at": 8,
+      "kind": "move",
+      "x": 0.7,
+      "y": 0.6
+    },
+    {
+      "at": 10,
+      "kind": "click",
+      "x": 0.66,
+      "y": 0.35
+    },
+    {
+      "at": 14,
+      "kind": "drag",
+      "x": 0.55,
+      "y": 0.5,
+      "toX": 0.68,
+      "toY": 0.43
+    },
+    {
+      "at": 20,
+      "kind": "black-hole",
+      "x": 0.72,
+      "y": 0.6
+    }
+  ]
+}

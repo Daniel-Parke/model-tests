@@ -1,0 +1,21 @@
+name: Experiment proposal
+description: Suggest a practical task for a future model comparison.
+title: "Experiment: "
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Practical task and intended output
+    validations:
+      required: true
+  - type: textarea
+    id: learning
+    attributes:
+      label: What could a reader learn from comparing the outputs?
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and proposed prompt
+      description: Agree the prompt before generating comparison results.

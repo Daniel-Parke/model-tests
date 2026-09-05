@@ -1,0 +1,24 @@
+{
+  "name": "pattertech-model-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Maintenance and media tools; the public site needs no build.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "serve": "node tools/serve.cjs",
+    "generate": "node tools/generate.cjs",
+    "check": "node tools/generate.cjs --check && node --test tests/catalogue.test.cjs && node tests/links.cjs",
+    "test:performance": "node tests/performance.cjs",
+    "test:media": "node --test tests/media.test.cjs",
+    "test:browser": "node tests/browser.cjs",
+    "test:lifecycle": "node tests/lifecycle.cjs",
+    "media": "node tools/media.cjs",
+    "setup:media": "node tools/setup-media.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "sharp": "0.35.4"
+  }
+}

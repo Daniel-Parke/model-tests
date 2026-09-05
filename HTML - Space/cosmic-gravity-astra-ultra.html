@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#03060d">
+<meta name="description" content="A small universe at your fingertips. Sculpt luminous galaxies, launch stars and bend their paths around black holes. A self-contained Canvas artwork by Astra Ultra.">
+<title>Cosmic Gravity Playground | Astra Ultra</title>
+<style>
+:root{color-scheme:dark;--paper:#e7edf2;--muted:#98a9b9;--line:#bbdfff20;--ice:#98e6e7;--gold:#edc38e;font-family:Inter,"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#03060d;color:var(--paper)}button,input{font:inherit}button{color:inherit;cursor:pointer}button:focus-visible,input:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid var(--ice);outline-offset:5px}button,input{-webkit-tap-highlight-color:transparent}canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}canvas:focus{outline-offset:-3px}.overlay{pointer-events:none;position:fixed;inset:0;background:linear-gradient(90deg,#03060d66,transparent 35%),linear-gradient(0deg,#03060d88,transparent 20%)}
+.masthead{position:fixed;left:38px;top:32px;pointer-events:none;user-select:none}.eyebrow{display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--ice)}.orbital{width:24px;height:24px;border:1px solid #b9e3e477;border-radius:50%;position:relative;transform:rotate(-30deg)}.orbital:before{content:"";position:absolute;inset:7px -5px;border:1px solid #b9e3e477;border-radius:50%}.orbital:after{content:"";position:absolute;width:3px;height:3px;border-radius:50%;background:var(--ice);left:10px;top:10px;box-shadow:0 0 9px var(--ice)}h1{font-size:clamp(26px,3vw,43px);line-height:1.03;font-weight:350;letter-spacing:-1.8px;margin:23px 0 14px}h1 span{display:block;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;color:#c9b394;letter-spacing:-1.1px;margin-top:6px}.intro{font-size:11px;line-height:1.8;color:var(--muted);margin:0;letter-spacing:.12px}.edition{position:fixed;right:35px;top:34px;text-align:right;pointer-events:none}.edition-label{font-size:10px;letter-spacing:3px;color:#c3d4dd}.edition-label b{font-weight:400;color:var(--gold)}.live{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:13px;font-size:9px;letter-spacing:1.8px;color:#91b8bd}.live-dot{width:4px;height:4px;border-radius:50%;background:#9ce6cd;box-shadow:0 0 9px #9ce6cd}.live-dot.paused{background:var(--gold);box-shadow:none}.epoch{font-variant-numeric:tabular-nums;display:block;font-size:10px;color:#7f93a6;letter-spacing:1px;margin-top:9px}
+.panel{position:fixed;bottom:67px;left:32px;width:262px;background:linear-gradient(145deg,#11202abc,#080e19c9);border:1px solid var(--line);border-radius:15px;padding:18px;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 18px 60px #0003;user-select:none}.panel-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.section-label{font-size:9px;letter-spacing:2.1px;color:#a8bbc5;text-transform:uppercase}.count{font-family:Consolas,monospace;font-size:10px;color:var(--ice)}.actions{display:flex;gap:8px}.actions button{border:1px solid var(--line);border-radius:7px;background:#c2def506;height:35px;flex:1;font-size:11px;transition:background .2s,border-color .2s}.actions button:hover{background:#c2def518;border-color:#a5dbef55}.actions #pause{background:#91d4d314;color:#bceeed;border-color:#9ce1df2c}.button-icon{font-size:13px;margin-right:6px}.tuning{margin-top:16px}.tuning summary{display:none}.controls{display:grid;gap:15px}.control-head{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.15px;margin-bottom:5px;color:#a8bac8}output{font-family:Consolas,monospace;color:#d2e5e8;font-size:10px;font-variant-numeric:tabular-nums}input[type=range]{--fill:30%;appearance:none;-webkit-appearance:none;width:100%;height:16px;display:block;margin:0;background:transparent;cursor:pointer}input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,#a2d4d6 0 var(--fill),#73899b40 var(--fill) 100%)}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:8px;height:8px;border-radius:50%;background:#def2ef;margin-top:-3px;box-shadow:0 0 8px #a1d3db66}input[type=range]::-moz-range-track{height:2px;border-radius:2px;background:#73899b40}input[type=range]::-moz-range-progress{background:#a2d4d6;height:2px}input[type=range]::-moz-range-thumb{width:8px;height:8px;background:#def2ef;border:0;border-radius:50%}.expansion{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #bad8f012;padding-top:13px;margin-top:12px;font-size:9px;color:#8ba1b4;letter-spacing:.3px}.expansion span:last-child{color:#b7c6c4}.expansion i{font-style:normal;color:var(--gold);margin-right:5px}
+.toolbelt{position:fixed;bottom:69px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--line);border-radius:12px;background:#0a1422ad;backdrop-filter:blur(18px)}.toolbelt button{height:34px;padding:0 17px;font-size:10px;letter-spacing:.3px;border:1px solid transparent;border-radius:7px;background:transparent;color:#96adbf;white-space:nowrap;transition:background .2s,color .2s}.toolbelt button:hover{background:#c2def50d;color:#e1eaf2}.toolbelt button[aria-pressed=true]{border-color:#f1d2a52c;background:#deb57d14;color:#f1d2a5}.tool-icon{font-size:14px;margin-right:7px;vertical-align:-1px}.instruction{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);font-size:10px;letter-spacing:.3px;color:#8095a9;white-space:nowrap;pointer-events:none}.instruction strong{font-weight:400;color:#b9ccd6}.footer{position:fixed;left:36px;bottom:27px;font-size:9px;color:#657e94;letter-spacing:1.3px;pointer-events:none}.footer span{color:#9aafb9}.scale{position:fixed;bottom:29px;right:36px;font-size:8px;color:#8196aa;letter-spacing:1.5px;text-align:right;pointer-events:none}.scale-line{width:85px;height:6px;border:1px solid #869fb66b;border-top:0;margin:0 0 8px auto}.toast{position:fixed;left:50%;top:28px;transform:translate(-50%,-8px);opacity:0;transition:opacity .25s,transform .25s;padding:11px 18px;border:1px solid #b5dfe32b;background:#0c1827e3;color:#d7e5e8;border-radius:8px;font-size:11px;pointer-events:none;max-width:80vw;text-align:center}.toast.show{transform:translate(-50%,0);opacity:1}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}
+canvas{z-index:0}.overlay{z-index:1}.masthead,.edition,.panel,.toolbelt,.instruction,.footer,.scale{z-index:2}.toast{z-index:3}
+canvas:focus-visible{outline:none}canvas:focus-visible + .overlay{box-shadow:inset 0 0 0 2px var(--ice)}
+@media(min-width:1800px){.masthead{left:50px;top:45px}.panel{left:44px;bottom:78px}}
+@media(max-width:800px){.masthead{left:22px;top:22px}h1{font-size:31px}.edition{right:22px;top:24px}.edition-label{font-size:8px;letter-spacing:2px}.panel{left:19px;bottom:72px;width:227px;padding:15px}.toolbelt{left:auto;right:20px;transform:none;bottom:74px}.toolbelt button{padding:0 11px}.instruction{left:auto;right:22px;transform:none;bottom:50px;font-size:9px}.footer{left:22px;bottom:23px}.scale{right:22px;bottom:20px}.scale-line{display:none}}
+@media(max-width:540px){.masthead{left:20px;top:20px}.eyebrow{font-size:7px;letter-spacing:2px;gap:8px}.orbital{width:19px;height:19px}.orbital:before{inset:5px -4px}.orbital:after{left:8px;top:8px}h1{font-size:29px;margin:16px 0 10px}.intro{font-size:10px;max-width:230px}.edition{top:23px;right:18px}.edition-label{font-size:7px;letter-spacing:1.2px}.live{font-size:7px;letter-spacing:1px;margin-top:11px}.epoch{font-size:8px}.panel{bottom:max(66px,calc(env(safe-area-inset-bottom) + 56px));left:16px;width:207px;padding:13px}.panel-top{margin-bottom:10px}.section-label{font-size:8px;letter-spacing:1.4px}.actions button{height:32px;font-size:10px}.tuning{margin-top:12px}.tuning summary{display:block;cursor:pointer;font-size:9px;color:#afc5d2;list-style:none}.tuning summary:after{content:" +";float:right;color:var(--ice)}.tuning[open] summary:after{content:" −"}.controls{gap:11px;padding-top:14px}.expansion{margin-top:10px;padding-top:9px;font-size:8px}.toolbelt{bottom:max(66px,calc(env(safe-area-inset-bottom) + 56px));right:16px;flex-direction:column;padding:4px;gap:4px}.toolbelt button{height:34px;padding:0 10px;font-size:9px;text-align:left}.instruction{bottom:max(40px,calc(env(safe-area-inset-bottom) + 30px));right:17px;font-size:8px;letter-spacing:0}.footer{bottom:max(19px,calc(env(safe-area-inset-bottom) + 9px));left:18px;font-size:7px;letter-spacing:.7px}.scale{bottom:max(19px,calc(env(safe-area-inset-bottom) + 9px));right:18px;font-size:7px}.toast{top:178px;font-size:10px;width:max-content;max-width:90vw}}
+@media(max-height:570px) and (min-width:541px){.masthead{top:18px}h1{font-size:27px;margin-top:12px}.intro{display:none}.panel{bottom:35px;padding:12px;width:225px}.controls{gap:7px}.tuning{margin-top:10px}.panel-top{margin-bottom:8px}.expansion{margin-top:6px;padding-top:8px}.toolbelt{bottom:48px}.instruction{bottom:24px}.footer{bottom:12px}.scale{bottom:15px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="universe" tabindex="0" aria-label="Interactive galaxy. Click to create a star; drag in its launch direction; Shift-click creates a black hole. Arrow keys move a creation point, Enter creates an object, B selects black holes and Space pauses.">Your browser needs HTML5 Canvas to display this simulation.</canvas>
+<div class="overlay" aria-hidden="true"></div>
+<header class="masthead">
+  <div class="eyebrow"><i class="orbital" aria-hidden="true"></i> An experiment in attraction</div>
+  <h1>Cosmic Gravity <span>Playground</span></h1>
+  <p class="intro">A small universe. An open invitation.<br>Move through the dust. Leave a little gravity.</p>
+</header>
+<div class="edition" aria-hidden="true"><div class="edition-label">ASTRA / <b>ULTRA</b></div><div class="live"><i id="liveDot" class="live-dot"></i><span id="liveText">UNIVERSE IN MOTION</span></div><span id="epoch" class="epoch">T + 0000.0</span></div>
+<section class="panel" aria-label="Simulation controls">
+  <div class="panel-top"><span class="section-label">Shape the universe</span><span class="count" id="count">1,600 bodies</span></div>
+  <div class="actions"><button id="pause" type="button" aria-label="Pause simulation"><span class="button-icon" aria-hidden="true">Ⅱ</span><span id="pauseText">Pause</span></button><button id="reset" type="button"><span class="button-icon" aria-hidden="true">↻</span>Reset</button></div>
+  <details class="tuning" id="tuning" open><summary>Tune the universe</summary><div class="controls">
+    <div><div class="control-head"><label for="speed">Time flow</label><output id="speedValue" for="speed">1.0×</output></div><input id="speed" type="range" aria-label="Simulation speed" min="0.2" max="2.5" step="0.1" value="1"></div>
+    <div><div class="control-head"><label for="gravity">Gravity strength</label><output id="gravityValue" for="gravity">1.0×</output></div><input id="gravity" type="range" min="0.2" max="2.5" step="0.1" value="1"></div>
+    <div><div class="control-head"><label for="density">Stardust population</label><output id="densityValue" for="density">1,600</output></div><input id="density" type="range" min="400" max="2600" step="100" value="1600"></div>
+  </div></details>
+  <div class="expansion"><span><i>↗</i> Cosmic expansion</span><span>0.12% / s</span></div>
+</section>
+<nav class="toolbelt" aria-label="Creation tool"><button id="starTool" type="button" aria-pressed="true"><span class="tool-icon" aria-hidden="true">✦</span>Star</button><button id="holeTool" type="button" aria-pressed="false"><span class="tool-icon" aria-hidden="true">◉</span>Black hole</button></nav>
+<div class="instruction"><strong>Click</strong> to create · <strong>Drag</strong> to launch · <strong>Shift</strong> for a black hole</div>
+<div class="footer"><span>GRAVITY BINDS.</span> SPACE EXPANDS.</div>
+<div class="scale"><div class="scale-line"></div>AN IMAGINED COSMOS</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<span class="sr-only" id="keyboardHint">Focus the canvas. Arrow keys position the launch point. Enter creates a star, Shift Enter creates a black hole. B switches tools. Escape cancels a drag. Space pauses. R resets.</span>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const canvas = $('universe');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) { $('toast').textContent = 'This browser could not start the Canvas renderer.'; $('toast').classList.add('show'); return; }
+  canvas.setAttribute('aria-describedby', 'keyboardHint');
+  const background = document.createElement('canvas'), bg = background.getContext('2d');
+  const trailCanvas = document.createElement('canvas'), trail = trailCanvas.getContext('2d');
+  const TAU = Math.PI * 2, G = 68, SOFT = 16, STEP = 1 / 60, EXPANSION = 0.0012;
+  const MAX_MASSIVE = 44, MAX_EFFECTS = 40;
+  const palette = ['#ffc383', '#ffe5b8', '#9be5ed', '#67bccf', '#bca6f0', '#e0d7ff', '#d9edf8', '#ed9678'];
+  let width = 1, height = 1, dpr = 1, scale = 1, originX = 0, originY = 0;
+  const tilt = -0.27, flatten = 0.72, ct = Math.cos(tilt), st = Math.sin(tilt);
+  let bodies = [], cores = [], effects = [], twinkles = [];
+  let gravity = 1, speed = 1, targetDust = 1600, time = 0, accumulator = 0;
+  let lastTime = 0, statsClock = 0, paused = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let mode = 'star', drag = null, nextId = 0, toastTimer = 0, seeded = false;
+  let backgroundRandom = 91673, randomState = 735294;
+  const pointer = { x: 0, y: 0, sx: 0, sy: 0, active: false, energy: 0, keyboard: false };
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const random = () => { randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0; return randomState / 4294967296; };
+  const bgRandom = () => { backgroundRandom = (Math.imul(backgroundRandom, 1664525) + 1013904223) >>> 0; return backgroundRandom / 4294967296; };
+  const between = (a, b) => a + (b - a) * random();
+  const gaussian = () => Math.sqrt(-2 * Math.log(Math.max(0.00001, random()))) * Math.cos(TAU * random());
+
+  // A fixed world projection makes resize harmless to the physical system.
+  function project(x, y) { return { x: originX + scale * (ct * x - st * y * flatten), y: originY + scale * (st * x + ct * y * flatten) }; }
+  function unproject(x, y) { const a = (x - originX) / scale, b = (y - originY) / scale; return { x: ct * a + st * b, y: (-st * a + ct * b) / flatten }; }
+  function screenTransform(g) { g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function worldTransform(g) { g.setTransform(dpr * scale * ct, dpr * scale * st, -dpr * scale * st * flatten, dpr * scale * ct * flatten, dpr * originX, dpr * originY); }
+
+  // Pre-rendered light sprites keep per-particle bloom inexpensive.
+  function makeGlow(colour) {
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d'), gradient = g.createRadialGradient(48, 48, 0, 48, 48, 48);
+    gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(0.035, '#fff7ef');
+    gradient.addColorStop(0.09, colour + 'ed'); gradient.addColorStop(0.19, colour + '65');
+    gradient.addColorStop(0.42, colour + '17'); gradient.addColorStop(1, colour + '00');
+    g.fillStyle = gradient; g.fillRect(0, 0, 96, 96); return c;
+  }
+  const sprites = palette.map(makeGlow);
+
+  function paintBackground() {
+    backgroundRandom = 91673;
+    const w = Math.ceil(width / 3), h = Math.ceil(height / 3);
+    const cloud = document.createElement('canvas'); cloud.width = w; cloud.height = h;
+    const cg = cloud.getContext('2d'), pixels = cg.createImageData(w, h);
+    const noise = new Float32Array(128 * 128);
+    for (let i = 0; i < noise.length; i++) noise[i] = bgRandom();
+    function sample(x, y) {
+      const ix = Math.floor(x), iy = Math.floor(y); let fx = x - ix, fy = y - iy;
+      fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+      const a = noise[(ix & 127) + (iy & 127) * 128], b = noise[((ix + 1) & 127) + (iy & 127) * 128];
+      const c = noise[(ix & 127) + ((iy + 1) & 127) * 128], d = noise[((ix + 1) & 127) + ((iy + 1) & 127) * 128];
+      return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+    }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const u = x / w, v = y / h, nx = u * 6, ny = v * 5;
+      const n = sample(nx, ny) * 0.56 + sample(nx * 2.1 + 21, ny * 2.1) * 0.27 + sample(nx * 4.4, ny * 4.4 + 17) * 0.12 + sample(nx * 9, ny * 9) * 0.05;
+      const band = Math.exp(-Math.pow((v - 0.69 + u * 0.38 + (n - 0.5) * 0.4) * 3.9, 2));
+      const f = Math.max(0, n - 0.26) * band, violet = Math.exp(-((u - 0.24) ** 2 + (v - 0.69) ** 2) * 9);
+      const i = (y * w + x) * 4;
+      pixels.data[i] = 3 + f * (13 + violet * 22);
+      pixels.data[i + 1] = 6 + f * (25 - violet * 7);
+      pixels.data[i + 2] = 12 + f * (37 + violet * 8);
+      pixels.data[i + 3] = 255;
+    }
+    cg.putImageData(pixels, 0, 0); screenTransform(bg); bg.drawImage(cloud, 0, 0, width, height);
+    bg.globalCompositeOperation = 'screen';
+    const stars = Math.min(2400, Math.floor(width * height / 690));
+    for (let i = 0; i < stars; i++) {
+      const x = bgRandom() * width, y = bgRandom() * height, r = 0.25 + bgRandom() ** 4 * 0.9;
+      bg.globalAlpha = 0.13 + bgRandom() ** 2 * 0.48;
+      bg.fillStyle = i % 4 === 0 ? '#b0d4e2' : i % 7 === 0 ? '#e1c5ac' : '#bac7da';
+      bg.beginPath(); bg.arc(x, y, r, 0, TAU); bg.fill();
+      if (r > 1) { bg.globalAlpha = 0.2; bg.drawImage(sprites[i % 3], x - 10, y - 10, 20, 20); }
+    }
+    bg.globalAlpha = 1; bg.globalCompositeOperation = 'source-over';
+    twinkles = Array.from({ length: 55 }, () => ({ x: bgRandom() * width, y: bgRandom() * height, size: 7 + bgRandom() * 9, phase: bgRandom() * TAU, depth: bgRandom() }));
+    const vignette = bg.createRadialGradient(width * 0.56, height * 0.48, height * 0.15, width * 0.51, height * 0.5, Math.max(width, height) * 0.7);
+    vignette.addColorStop(0, '#00000000'); vignette.addColorStop(1, '#010308c0');
+    bg.fillStyle = vignette; bg.fillRect(0, 0, width, height);
+  }
+
+  function resize() {
+    width = innerWidth; height = innerHeight; dpr = Math.min(devicePixelRatio || 1, 1.75);
+    const mobile = width <= 540;
+    if (!mobile) $('tuning').open = true;
+    scale = mobile ? Math.min(width / 1400, height / 1160) : Math.min(width / 1780, height / 1080);
+    originX = width * (mobile ? 0.46 : 0.56); originY = height * (mobile ? 0.46 : 0.47);
+    for (const c of [canvas, background, trailCanvas]) { c.width = Math.round(width * dpr); c.height = Math.round(height * dpr); }
+    paintBackground(); cancelDrag(); pointer.active = false;
+    if (seeded) seedTrails();
+  }
+
+  function body(x, y, vx, vy, mass, colour, kind = 'dust', label = '') {
+    return { id: nextId++, x, y, vx, vy, mass, colour, kind, label, ax: 0, ay: 0, lx: x, ly: y, birth: time, radius: kind === 'hole' ? 9 + Math.cbrt(mass) * 0.21 : kind === 'dust' ? 0.4 : 2 + Math.cbrt(mass) * 0.16, light: between(0.45, 1), orbit: null };
+  }
+  function orbitalSpeed(mass, r) { return Math.sqrt(G * gravity * mass * r * r / Math.pow(r * r + SOFT * SOFT, 1.5)); }
+  function dustAround(core, r, angle, colour, sense = 1) {
+    const c = Math.cos(angle), s = Math.sin(angle), v = orbitalSpeed(core.mass, r) * between(0.94, 1.045) * sense;
+    const p = body(core.x + r * c, core.y + r * s, core.vx - s * v, core.vy + c * v, between(0.025, 0.12), colour);
+    p.orbit = { core, r, angle, sense }; return p;
+  }
+  function addDust(index) {
+    const activeCores = cores.filter(c => bodies.includes(c));
+    const core = activeCores.length ? activeCores[index % 10 < 7 ? 0 : index % activeCores.length] : bodies.find(b => b.kind !== 'dust');
+    if (!core) return body(between(-800, 800), between(-550, 550), between(-12, 12), between(-12, 12), 0.06, 2);
+    const primary = core === cores[0], r = primary ? 28 + random() ** 0.73 * 405 : 18 + random() ** 0.72 * 151;
+    const arm = index % (primary ? 3 : 2), angle = r * (primary ? 0.020 : 0.033) + arm * TAU / (primary ? 3 : 2) + gaussian() * (primary ? 0.18 : 0.24);
+    const colour = primary ? (r < 190 ? (random() < 0.74 ? 0 : 1) : (random() < 0.55 ? 2 : random() < 0.5 ? 0 : 3)) : core === cores[1] ? (random() < 0.8 ? 2 : 6) : (random() < 0.8 ? 4 : 5);
+    return dustAround(core, r, angle, colour);
+  }
+  function resetUniverse(announce = true) {
+    cancelDrag(); randomState = 735294; nextId = 0; time = 0; accumulator = 0; effects = []; pointer.energy = 0;
+    bodies = []; cores = [];
+    const a = body(-65, 25, 0, 0, 16500, 0, 'core', 'AURELIA');
+    const b = body(605, -210, 12, 30, 3400, 2, 'core', 'VELA');
+    const c = body(-535, 305, -20, -27, 2050, 4, 'core', 'LYRA');
+    a.vx = -(b.vx * b.mass + c.vx * c.mass) / a.mass;
+    a.vy = -(b.vy * b.mass + c.vy * c.mass) / a.mass;
+    cores = [a, b, c]; bodies.push(...cores);
+    for (let i = 0; i < 10; i++) {
+      const host = i < 7 ? a : i < 9 ? b : c, r = 75 + (i % 7) * 44, angle = i * 2.399;
+      const p = dustAround(host, r, angle, host.colour);
+      p.kind = 'star'; p.mass = between(8, 40); p.radius = 2 + Math.cbrt(p.mass) * 0.16; bodies.push(p);
+    }
+    for (let i = 0; i < targetDust; i++) bodies.push(addDust(i));
+    seeded = true; seedTrails(); updateStats();
+    if (announce) toast('A fresh universe. The same possibilities.');
+  }
+
+  // Barnes-Hut quadtree. Every particle contributes gravitational mass.
+  // Bucket leaves and a depth limit handle coincident objects without recursion failure.
+  const nodes = []; let usedNodes = 0, root = 0;
+  function newNode(x, y, size) {
+    const i = usedNodes++, n = nodes[i] || (nodes[i] = {});
+    n.x = x; n.y = y; n.size = size; n.mass = 0; n.mx = 0; n.my = 0; n.children = null;
+    if (!n.items) n.items = []; else n.items.length = 0;
+    return i;
+  }
+  function insert(index, p, depth) {
+    const n = nodes[index]; n.mass += p.mass; n.mx += p.mass * p.x; n.my += p.mass * p.y;
+    if (!n.children && (n.items.length < 4 || depth >= 18)) { n.items.push(p); return; }
+    if (!n.children) {
+      const half = n.size / 2;
+      n.children = [newNode(n.x, n.y, half), newNode(n.x + half, n.y, half), newNode(n.x, n.y + half, half), newNode(n.x + half, n.y + half, half)];
+      for (const old of n.items) insert(n.children[(old.x >= n.x + half ? 1 : 0) + (old.y >= n.y + half ? 2 : 0)], old, depth + 1);
+      n.items.length = 0;
+    }
+    const half = n.size / 2;
+    insert(n.children[(p.x >= n.x + half ? 1 : 0) + (p.y >= n.y + half ? 2 : 0)], p, depth + 1);
+  }
+  function buildTree() {
+    usedNodes = 0; let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const b of bodies) { minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x); minY = Math.min(minY, b.y); maxY = Math.max(maxY, b.y); }
+    const size = Math.max(4, maxX - minX, maxY - minY) + 2;
+    root = newNode(minX - 1, minY - 1, size);
+    for (const b of bodies) insert(root, b, 0);
+    for (let i = 0; i < usedNodes; i++) { const n = nodes[i]; if (n.mass) { n.mx /= n.mass; n.my /= n.mass; } }
+  }
+  const stack = [];
+  function accelerations() {
+    if (!bodies.length) return;
+    buildTree(); const g = G * gravity, soft2 = SOFT * SOFT;
+    for (const b of bodies) {
+      let ax = 0, ay = 0; stack.length = 0; stack.push(root);
+      while (stack.length) {
+        const n = nodes[stack.pop()]; if (!n.mass) continue;
+        const dx = n.mx - b.x, dy = n.my - b.y, d2 = dx * dx + dy * dy;
+        const contains = b.x >= n.x && b.x <= n.x + n.size && b.y >= n.y && b.y <= n.y + n.size;
+        if (n.children && (contains || n.size * n.size > d2 * 0.55)) { stack.push(...n.children); continue; }
+        if (n.children) {
+          const softened = d2 + soft2, force = g * n.mass / (softened * Math.sqrt(softened)); ax += dx * force; ay += dy * force;
+        } else for (const other of n.items) {
+          if (other === b) continue;
+          const x = other.x - b.x, y = other.y - b.y, softened = x * x + y * y + soft2;
+          const force = g * other.mass / (softened * Math.sqrt(softened)); ax += x * force; ay += y * force;
+        }
+      }
+      if (pointer.active && pointer.energy > 0.01 && !drag && b.kind === 'dust') {
+        const dx = pointer.x - b.x, dy = pointer.y - b.y, r2 = dx * dx + dy * dy;
+        if (r2 < 210 * 210) {
+          const f = 0.20 * pointer.energy * (1 - Math.sqrt(r2) / 210);
+          ax += (dx - dy * 0.32) * f; ay += (dy + dx * 0.32) * f;
+        }
+      }
+      b.ax = ax; b.ay = ay;
+    }
+  }
+  function addEffect(x, y, colour, power = 1) {
+    effects.push({ x, y, colour, power, age: 0, phase: random() * TAU });
+    if (effects.length > MAX_EFFECTS) effects.shift();
+  }
+  function mergeBodies(a, b) {
+    const mass = a.mass + b.mass;
+    a.x = (a.x * a.mass + b.x * b.mass) / mass; a.y = (a.y * a.mass + b.y * b.mass) / mass;
+    a.vx = (a.vx * a.mass + b.vx * b.mass) / mass; a.vy = (a.vy * a.mass + b.vy * b.mass) / mass;
+    a.mass = mass; a.lx = a.x; a.ly = a.y; b.dead = true;
+    if (b.kind !== 'dust') { addEffect(a.x, a.y, a.colour, 1.2); if (a.kind !== 'hole' && b.kind === 'core') { a.kind = 'core'; a.label = b.label; } }
+    a.radius = a.kind === 'hole' ? Math.min(26, 9 + Math.cbrt(mass) * 0.21) : 2 + Math.cbrt(mass) * 0.16;
+  }
+  function collisions() {
+    const heavy = bodies.filter(b => b.kind !== 'dust'); let changed = false;
+    for (const a of heavy) {
+      if (a.dead) continue;
+      for (const b of bodies) {
+        if (b === a || b.dead || a.dead) continue;
+        if (b.kind !== 'dust' && (a.kind !== 'hole' && b.kind === 'hole' || a.kind === b.kind && a.mass < b.mass)) continue;
+        if (a.kind !== 'hole' && b.kind === 'dust') continue;
+        const r = a.kind === 'hole' ? a.radius * 0.70 : (a.radius + b.radius) * 0.48;
+        if ((a.x - b.x) ** 2 + (a.y - b.y) ** 2 < r * r) { mergeBodies(a, b); changed = true; }
+      }
+    }
+    if (changed) bodies = bodies.filter(b => !b.dead);
+  }
+  function step(dt) {
+    accelerations(); const expansion = Math.exp(EXPANSION * dt);
+    for (const b of bodies) {
+      b.vx += b.ax * dt; b.vy += b.ay * dt;
+      const velocity = Math.hypot(b.vx, b.vy);
+      if (velocity > 1100) { b.vx *= 1100 / velocity; b.vy *= 1100 / velocity; }
+      b.x = (b.x + b.vx * dt) * expansion; b.y = (b.y + b.vy * dt) * expansion;
+    }
+    collisions(); time += dt;
+    pointer.energy *= Math.exp(-dt * 1.8);
+    for (const effect of effects) effect.age += dt;
+    effects = effects.filter(e => e.age < 2.4);
+    // Escaped particles are replaced in the remaining systems to keep the artwork alive.
+    let recycled = 0;
+    for (let i = 0; i < bodies.length; i++) if (bodies[i].kind === 'dust' && Math.hypot(bodies[i].x, bodies[i].y) > 4200 && recycled++ < 8) bodies[i] = addDust(i);
+  }
+
+  function seedTrails() {
+    trail.setTransform(1, 0, 0, 1, 0, 0); trail.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    worldTransform(trail); trail.globalCompositeOperation = 'lighter'; trail.lineCap = 'round';
+    for (const b of bodies) {
+      b.lx = b.x; b.ly = b.y;
+      if (!b.orbit || b.kind !== 'dust') continue;
+      const { core, r, sense } = b.orbit;
+      const angle = Math.atan2(b.y - core.y, b.x - core.x), radius = Math.hypot(b.x - core.x, b.y - core.y);
+      if (Math.abs(radius - r) > r * 0.35) continue;
+      const arc = clamp(orbitalSpeed(core.mass, radius) / radius * 0.8, 0.05, 1.65);
+      trail.strokeStyle = palette[b.colour]; trail.lineWidth = 0.75 / Math.max(scale, 0.45);
+      for (let s = 0; s < 8; s++) {
+        trail.globalAlpha = (0.018 + s * 0.008) * b.light;
+        const start = angle - sense * arc * (1 - s / 8), end = angle - sense * arc * (1 - (s + 1) / 8);
+        trail.beginPath(); trail.arc(core.x, core.y, radius, start, end, sense < 0); trail.stroke();
+      }
+    }
+    trail.globalAlpha = 1; trail.globalCompositeOperation = 'source-over';
+  }
+  function updateTrails(dt) {
+    screenTransform(trail); trail.globalCompositeOperation = 'destination-out';
+    trail.fillStyle = `rgba(0,0,0,${1 - Math.exp(-dt * 1.3)})`; trail.fillRect(0, 0, width, height);
+    worldTransform(trail); trail.globalCompositeOperation = 'lighter'; trail.lineCap = 'round';
+    for (let colour = 0; colour < palette.length; colour++) {
+      trail.strokeStyle = palette[colour]; trail.globalAlpha = 0.30; trail.lineWidth = 0.85 / Math.max(scale, 0.45); trail.beginPath();
+      for (const b of bodies) if (b.colour === colour && b.kind === 'dust') { trail.moveTo(b.lx, b.ly); trail.lineTo(b.x, b.y); }
+      trail.stroke();
+    }
+    for (const b of bodies) {
+      if (b.kind !== 'dust') {
+        trail.strokeStyle = palette[b.colour]; trail.lineWidth = b.kind === 'hole' ? 1.5 : 1; trail.globalAlpha = 0.36;
+        trail.beginPath(); trail.moveTo(b.lx, b.ly); trail.lineTo(b.x, b.y); trail.stroke();
+      }
+      b.lx = b.x; b.ly = b.y;
+    }
+    trail.globalAlpha = 1; trail.globalCompositeOperation = 'source-over';
+  }
+
+  function glow(x, y, radius, colour, alpha = 1) { ctx.globalAlpha = alpha; ctx.drawImage(sprites[colour], x - radius, y - radius, radius * 2, radius * 2); }
+  function drawCore(b, p) {
+    const r = clamp(b.radius * scale, 2.8, 12), pulse = 1 + Math.sin(time * 1.9 + b.id) * 0.035;
+    ctx.globalCompositeOperation = 'lighter'; glow(p.x, p.y, r * 21 * pulse, b.colour, 0.32); glow(p.x, p.y, r * 7, b.colour, 0.85); glow(p.x, p.y, r * 2.8, 1, 0.9);
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(tilt); ctx.scale(1, 0.12); glow(0, 0, r * 24, b.colour, 0.55); ctx.restore();
+    ctx.globalAlpha = 0.65; ctx.strokeStyle = palette[b.colour]; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(p.x - r * 17, p.y + r * 4.7); ctx.lineTo(p.x + r * 17, p.y - r * 4.7); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#fff6e9'; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(1.6, r * 0.34), 0, TAU); ctx.fill();
+    if (b.label && width > 540) {
+      const dx = b === cores[0] ? 56 : 36, dy = b === cores[0] ? -64 : -39;
+      ctx.strokeStyle = '#b4c9d238'; ctx.lineWidth = 0.65; ctx.beginPath(); ctx.moveTo(p.x + 12, p.y - 11); ctx.lineTo(p.x + dx, p.y + dy); ctx.lineTo(p.x + dx + 32, p.y + dy); ctx.stroke();
+      ctx.font = '8px "Segoe UI", sans-serif'; ctx.fillStyle = '#b2c1c8'; ctx.fillText(b.label, p.x + dx + 4, p.y + dy - 7);
+      ctx.fillStyle = '#687e92'; ctx.font = '7px Consolas, monospace'; ctx.fillText(b === cores[0] ? 'PRIMARY / 01' : b === cores[1] ? 'SATELLITE / 02' : 'SATELLITE / 03', p.x + dx + 4, p.y + dy + 12);
+    }
+  }
+  function drawHole(b, p) {
+    const r = Math.max(6, b.radius * scale);
+    ctx.globalCompositeOperation = 'lighter'; glow(p.x, p.y, r * 12, 0, 0.25); glow(p.x, p.y, r * 5, 4, 0.35);
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(-0.36);
+    for (let i = 5; i >= 0; i--) {
+      ctx.strokeStyle = i < 2 ? '#ffe4b7' : '#e7a25d'; ctx.globalAlpha = 0.13 + (5 - i) * 0.09; ctx.lineWidth = 1 + i * 0.8;
+      ctx.beginPath(); ctx.ellipse(0, 0, r * (2.15 + i * 0.09), r * (0.63 + i * 0.04), 0, 0, TAU); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.fillStyle = '#010208';
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#fcd8ab'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(0, 0, r * 1.07, 0, TAU); ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#ffdb9c'; ctx.lineWidth = 2; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.ellipse(0, r * 0.04, r * 2.24, r * 0.69, 0, 0, Math.PI); ctx.stroke();
+    for (let i = 0; i < 7; i++) {
+      const angle = time * (1.1 + i * 0.12) + i * 2.4, rx = r * (2.2 + (i % 2) * 0.28);
+      glow(Math.cos(angle) * rx, Math.sin(angle) * rx * 0.31, r * 0.8, 1, 0.65);
+    }
+    ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+  function drawEffects() {
+    ctx.globalCompositeOperation = 'lighter';
+    for (const e of effects) {
+      const p = project(e.x, e.y), t = e.age / 2.4, radius = (14 + e.age * 95) * scale;
+      ctx.strokeStyle = palette[e.colour]; ctx.lineWidth = 1; ctx.globalAlpha = (1 - t) ** 2 * 0.5;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, radius, radius * 0.72, tilt, 0, TAU); ctx.stroke();
+      glow(p.x, p.y, (30 + e.age * 75) * scale * e.power, e.colour, (1 - t) ** 4 * 0.7);
+      for (let j = 0; j < 14; j++) {
+        const angle = e.phase + j * TAU / 14, r = e.age * (55 + (j % 3) * 22) * scale;
+        glow(p.x + Math.cos(angle) * r, p.y + Math.sin(angle) * r * 0.72, 5 * (1 - t) + 1, e.colour, (1 - t) ** 2 * 0.6);
+      }
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+  function launchVelocity(start, end) {
+    let vx = (end.x - start.x) * 0.82, vy = (end.y - start.y) * 0.82;
+    const length = Math.hypot(vx, vy); if (length > 420) { vx *= 420 / length; vy *= 420 / length; }
+    return { vx, vy };
+  }
+  function drawGesture() {
+    if (!drag && !pointer.active) return;
+    const isHole = drag ? drag.hole : mode === 'hole';
+    const colour = isHole ? '#eed0a9' : '#a5e8e8'; ctx.strokeStyle = colour;
+    if (drag) {
+      const a = project(drag.x, drag.y), end = project(drag.end.x, drag.end.y), velocity = launchVelocity(drag, drag.end);
+      let x = drag.x, y = drag.y, vx = velocity.vx, vy = velocity.vy;
+      const sources = bodies.filter(b => b.kind !== 'dust');
+      // Preview assumes the existing massive bodies stay still during the launch.
+      ctx.lineWidth = 1; ctx.setLineDash([3, 6]); ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.moveTo(a.x, a.y);
+      for (let i = 0; i < 110; i++) {
+        let ax = 0, ay = 0;
+        for (const b of sources) { const dx = b.x - x, dy = b.y - y, d2 = dx * dx + dy * dy + SOFT * SOFT, f = G * gravity * b.mass / (d2 * Math.sqrt(d2)); ax += dx * f; ay += dy * f; }
+        vx += ax * 0.027; vy += ay * 0.027; x += vx * 0.027; y += vy * 0.027;
+        const p = project(x, y); ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+      const angle = Math.atan2(end.y - a.y, end.x - a.x);
+      if (Math.hypot(end.x - a.x, end.y - a.y) > 8) {
+        ctx.beginPath(); ctx.moveTo(end.x - 8 * Math.cos(angle - 0.4), end.y - 8 * Math.sin(angle - 0.4)); ctx.lineTo(end.x, end.y); ctx.lineTo(end.x - 8 * Math.cos(angle + 0.4), end.y - 8 * Math.sin(angle + 0.4)); ctx.stroke();
+      }
+      ctx.globalCompositeOperation = 'lighter'; glow(a.x, a.y, isHole ? 47 : 28, isHole ? 0 : 2, 0.7); ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(a.x, a.y, isHole ? 13 : 8, 0, TAU); ctx.stroke();
+      ctx.font = '9px "Segoe UI", sans-serif'; ctx.fillStyle = colour;
+      const text = `${isHole ? 'BLACK HOLE' : 'NEW STAR'}  /  ${Math.round(Math.hypot(velocity.vx, velocity.vy))} u/s`;
+      const labelX = clamp(a.x + 18, 8, Math.max(8, width - ctx.measureText(text).width - 12));
+      ctx.fillText(text, labelX, clamp(a.y - 20, 20, height - 12));
+      ctx.font = '8px "Segoe UI", sans-serif'; ctx.globalAlpha = 0.5; ctx.fillText('RELEASE TO LAUNCH · ESTIMATED PATH', labelX, clamp(a.y - 6, 34, height - 8));
+    } else {
+      const p = project(pointer.x, pointer.y); ctx.globalAlpha = pointer.keyboard ? 0.8 : 0.24 + pointer.energy * 0.25;
+      ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(p.x, p.y, isHole ? 15 : 10, 0, TAU); ctx.stroke();
+      const r = 17; ctx.beginPath(); ctx.moveTo(p.x - r - 4, p.y); ctx.lineTo(p.x - r, p.y); ctx.moveTo(p.x + r, p.y); ctx.lineTo(p.x + r + 4, p.y); ctx.moveTo(p.x, p.y - r - 4); ctx.lineTo(p.x, p.y - r); ctx.moveTo(p.x, p.y + r); ctx.lineTo(p.x, p.y + r + 4); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function render() {
+    screenTransform(ctx); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.drawImage(background, 0, 0, width, height);
+    ctx.globalCompositeOperation = 'lighter';
+    const px = pointer.active ? (pointer.sx / width - 0.5) * 3 : 0, py = pointer.active ? (pointer.sy / height - 0.5) * 3 : 0;
+    for (const s of twinkles) glow(s.x + px * s.depth, s.y + py * s.depth, s.size, 6, 0.16 + 0.13 * Math.sin(time * 0.55 + s.phase));
+    ctx.globalAlpha = 1; ctx.drawImage(trailCanvas, 0, 0, width, height);
+    // Dust points remain sharp; their cached sprites supply a small halo.
+    for (const b of bodies) {
+      if (b.kind !== 'dust') continue;
+      const p = project(b.x, b.y); if (p.x < -20 || p.x > width + 20 || p.y < -20 || p.y > height + 20) continue;
+      const size = (3.1 + b.light * 3.8) * Math.max(0.63, scale);
+      glow(p.x, p.y, size, b.colour, 0.44 + b.light * 0.43);
+    }
+    for (const b of bodies) {
+      if (b.kind === 'dust') continue;
+      const p = project(b.x, b.y); if (p.x < -250 || p.x > width + 250 || p.y < -250 || p.y > height + 250) continue;
+      if (b.kind === 'core') drawCore(b, p);
+      else if (b.kind === 'hole') drawHole(b, p);
+      else { ctx.globalCompositeOperation = 'lighter'; const r = Math.max(2, b.radius * scale); glow(p.x, p.y, r * 8, b.colour, 0.52); glow(p.x, p.y, r * 2.8, b.colour, 0.95); }
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; drawEffects(); drawGesture();
+  }
+  function updateStats() { $('count').textContent = bodies.length.toLocaleString('en-GB') + ' bodies'; $('epoch').textContent = 'T + ' + time.toFixed(1).padStart(6, '0'); }
+  function toast(message) { clearTimeout(toastTimer); $('toast').textContent = message; $('toast').classList.add('show'); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2800); }
+  function setPaused(value) {
+    paused = value; accumulator = 0;
+    $('pauseText').textContent = paused ? 'Resume' : 'Pause'; $('pause').setAttribute('aria-label', paused ? 'Resume simulation' : 'Pause simulation');
+    $('pause').querySelector('.button-icon').textContent = paused ? '▷' : 'Ⅱ';
+    $('liveText').textContent = paused ? 'TIME IS SUSPENDED' : 'UNIVERSE IN MOTION'; $('liveDot').classList.toggle('paused', paused);
+  }
+  function setMode(value) { mode = value; $('starTool').setAttribute('aria-pressed', value === 'star'); $('holeTool').setAttribute('aria-pressed', value === 'hole'); }
+  function spawn(x, y, vx, vy, hole) {
+    if (bodies.filter(b => b.kind !== 'dust').length >= MAX_MASSIVE) { toast('This universe is full of stars. Reset to begin again.'); return null; }
+    const b = body(x, y, vx, vy, hole ? 8000 : 230, hole ? 0 : [0, 2, 4][nextId % 3], hole ? 'hole' : 'star');
+    bodies.push(b); addEffect(x, y, b.colour, hole ? 1.5 : 1); updateStats();
+    toast(hole ? 'An event horizon. Watch the nearby light bend.' : Math.hypot(vx, vy) > 8 ? 'A star in motion. Let gravity write the rest.' : 'A new star. A new centre of attraction.');
+    return b;
+  }
+  function setDensity(value) {
+    targetDust = value; let count = bodies.filter(b => b.kind === 'dust').length;
+    if (count > value) { let left = value; bodies = bodies.filter(b => b.kind !== 'dust' || left-- > 0); }
+    else for (let i = count; i < value; i++) { const b = addDust(i); b.orbit = null; bodies.push(b); }
+    updateStats();
+  }
+  function cancelDrag() {
+    const current = drag; drag = null;
+    if (current && canvas.hasPointerCapture(current.id)) canvas.releasePointerCapture(current.id);
+  }
+  function updatePointer(event) {
+    const p = unproject(event.clientX, event.clientY);
+    pointer.energy = Math.min(1, pointer.energy + Math.hypot(event.clientX - pointer.sx, event.clientY - pointer.sy) * 0.018);
+    Object.assign(pointer, p, { sx: event.clientX, sy: event.clientY, active: true, keyboard: false });
+    return p;
+  }
+  canvas.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || drag) return;
+    event.preventDefault(); canvas.focus({ preventScroll: true }); const p = updatePointer(event);
+    drag = { x: p.x, y: p.y, end: { ...p }, id: event.pointerId, hole: event.shiftKey || mode === 'hole' };
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener('pointermove', event => { if (drag && drag.id !== event.pointerId) return; const p = updatePointer(event); if (drag) drag.end = p; });
+  canvas.addEventListener('pointerup', event => {
+    if (!drag || drag.id !== event.pointerId) return;
+    const end = updatePointer(event), start = drag, v = launchVelocity(start, end);
+    const a = project(start.x, start.y); if (Math.hypot(event.clientX - a.x, event.clientY - a.y) < 5) { v.vx = 0; v.vy = 0; }
+    cancelDrag(); spawn(start.x, start.y, v.vx, v.vy, start.hole || event.shiftKey);
+    if (event.pointerType !== 'mouse') pointer.active = false;
+  });
+  canvas.addEventListener('pointercancel', () => { cancelDrag(); pointer.active = false; });
+  canvas.addEventListener('lostpointercapture', () => { drag = null; });
+  canvas.addEventListener('pointerleave', () => { if (!drag) pointer.active = false; });
+  window.addEventListener('blur', () => { cancelDrag(); pointer.active = false; });
+  document.addEventListener('visibilitychange', () => { lastTime = 0; accumulator = 0; if (document.hidden) { cancelDrag(); pointer.active = false; } });
+  $('pause').addEventListener('click', () => setPaused(!paused));
+  $('reset').addEventListener('click', () => resetUniverse());
+  $('starTool').addEventListener('click', () => setMode('star'));
+  $('holeTool').addEventListener('click', () => setMode('hole'));
+  for (const id of ['speed', 'gravity', 'density']) {
+    const input = $(id);
+    const update = () => {
+      const value = Number(input.value); input.style.setProperty('--fill', ((value - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100) + '%');
+      $(id + 'Value').textContent = id === 'density' ? value.toLocaleString('en-GB') : value.toFixed(1) + '×';
+      if (id === 'speed') speed = value; else if (id === 'gravity') gravity = value; else if (seeded) setDensity(value);
+    };
+    input.addEventListener('input', update); update();
+  }
+  document.addEventListener('keydown', event => {
+    if (event.target instanceof HTMLElement && event.target.matches('input,button,summary,textarea,select,[contenteditable=true]')) return;
+    if (event.code === 'Space') { event.preventDefault(); if (!event.repeat) setPaused(!paused); }
+    else if (event.key.toLowerCase() === 'r' && !event.ctrlKey && !event.metaKey) resetUniverse();
+    else if (event.key.toLowerCase() === 'b' && !event.ctrlKey && !event.metaKey) setMode(mode === 'hole' ? 'star' : 'hole');
+    else if (event.key === 'Escape') cancelDrag();
+    else if (document.activeElement === canvas && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(event.key)) {
+      event.preventDefault(); if (!pointer.keyboard) Object.assign(pointer, { x: 160, y: -190, active: true, keyboard: true });
+      if (event.key === 'Enter' && !event.repeat) spawn(pointer.x, pointer.y, 0, 0, event.shiftKey || mode === 'hole');
+      else {
+        const s = project(pointer.x, pointer.y), distance = event.shiftKey ? 35 : 12;
+        s.x += event.key === 'ArrowLeft' ? -distance : event.key === 'ArrowRight' ? distance : 0;
+        s.y += event.key === 'ArrowUp' ? -distance : event.key === 'ArrowDown' ? distance : 0;
+        Object.assign(pointer, unproject(clamp(s.x, 10, width - 10), clamp(s.y, 10, height - 10)));
+      }
+    }
+  });
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (document.hidden) { lastTime = 0; return; }
+    const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.065) : 0; lastTime = now;
+    if (!paused) {
+      // Bound catch-up work: an overloaded device slows time instead of queuing frames.
+      accumulator = Math.min(accumulator + dt * speed, STEP * 3); let advanced = 0;
+      while (accumulator >= STEP) { step(STEP); accumulator -= STEP; advanced += STEP; }
+      if (advanced) updateTrails(advanced);
+    }
+    render(); statsClock += dt;
+    if (statsClock > 0.18) { updateStats(); statsClock = 0; }
+  }
+  if (innerWidth <= 540) $('tuning').open = false;
+  window.addEventListener('resize', resize);
+  resize(); resetUniverse(false); setPaused(paused); render(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
