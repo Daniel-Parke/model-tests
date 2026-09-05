@@ -119,6 +119,14 @@ The PDF's Explore link now goes straight to the homepage comparison. Its layout 
 
 The final local review is still yours: assess the visual direction, play the complete videos and approve the publication copy. Automated decoding and sampled-frame inspection do not replace that editorial review. The small montage tiles are an overview; individual clips and effort-pair PDF pages provide readable comparisons.
 
-Hosted CI, Firefox/WebKit, physical mobile devices, native background-tab policies and social-platform uploads have not been verified in this preparation. No formal accessibility certification or scientific benchmark is claimed.
+At the local review stage, hosted CI had not run. Firefox/WebKit, physical mobile devices, native background-tab policies and social-platform uploads remain outside the verified scope. No formal accessibility certification or scientific benchmark is claimed.
 
 After approval, follow the separate [publication sequence](maintenance.md#publication-sequence) and [prepared content](publication.md). Verify the ten live result URLs before using copy that says all ten are available. Upload GitHub's repository preview separately from the landing-page social metadata. Do not publish the private archive or recording masters as source files.
+
+## Publication verification, 5 September 2026
+
+The user authorised commit and push after the visual review. Commit fc5de6b was pushed to main and the Pages deployment completed successfully. Live HTTP responses for all ten originals matched their recorded SHA-256 hashes. The homepage, context page, site CSS/JavaScript, generated browser catalogue and both responsive preview videos matched the committed bytes. The media-pack gallery URL returned 404.
+
+The catalogue and generated result tables were then updated to Published. Media-pack uploads, social posts, GitHub About/topics and the uploaded repository social preview were not changed. The full media pack remains local and ignored by Git.
+
+The initial hosted Linux validation timed out in the unchanged Sol Ultra canvas. CI now uses Windows and full Chromium, matching local validation. All browser assertions remain enabled; original artefacts are unchanged.

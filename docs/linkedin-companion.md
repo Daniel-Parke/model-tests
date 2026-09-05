@@ -1,6 +1,6 @@
 # Cosmic Gravity: document companion
 
-This text accompanies the eight-page LinkedIn PDF. The screenshots show real default scenes, not scored results. [Open the complete result browser](https://daniel-parke.github.io/model-tests/experiments/cosmic-gravity/).
+This text accompanies the eight-page LinkedIn PDF. The screenshots show real default scenes, not scored results. [Open the complete result browser](https://daniel-parke.github.io/model-tests/#results).
 
 ## Page 1: Same brief. Different universes.
 
@@ -38,4 +38,4 @@ Open a simulation, launch stars, adjust gravity and switch models. The site incl
 
 [Explore the demos](https://daniel-parke.github.io/model-tests/) · [Read the repository](https://github.com/Daniel-Parke/model-tests) · [Reuse the prompt](https://daniel-parke.github.io/model-tests/experiments/cosmic-gravity/#prompt)
 
-Code and demos use the MIT licence. Branding and third-party assets have separate terms. Four new result links become publicly available only after the prepared release is published.
+Code and demos use the MIT licence. Branding and third-party assets have separate terms. All ten result links were published and verified on 5 September 2026.

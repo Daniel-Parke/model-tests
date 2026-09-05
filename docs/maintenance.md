@@ -14,7 +14,7 @@ Use Node.js 22 or later. The public site has no build dependency. For browser an
 
 Preview with npm run serve. Stop the terminal process when finished.
 
-Run `npm run test:performance` for the documented three-sample mobile lab profile. Browser checks include direct-file originals and the sandboxed viewer. Hosted CI is configured but has not run for this uncommitted preparation.
+Run `npm run test:performance` for the documented three-sample mobile lab profile. Browser checks include direct-file originals and the sandboxed viewer. Hosted CI uses Windows and full Chromium, matching the local validation environment. The initial Linux runner timed out while rendering the unchanged Sol Ultra original; no demo code or browser assertions were removed to accommodate it.
 
 Save all text as UTF-8. When using Python, pass encoding="utf-8" explicitly for text reads and writes.
 

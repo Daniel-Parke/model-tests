@@ -16,10 +16,10 @@ Create a visually compelling interactive gravity simulation in one self-containe
 | Sol | Medium | [Open](cosmic-gravity-playground-sol-medium.html) | Published |
 | Astra | High | [Open](cosmic-gravity-astra-high.html) | Published |
 | Sol | High | [Open](cosmic-gravity-sol-high.html) | Published |
-| Astra | Extra High | [Open](cosmic-gravity-astra-extra-high.html) | Prepared locally |
-| Sol | Extra High | [Open](cosmic-gravity-sol-extra-high.html) | Prepared locally |
-| Astra | Ultra | [Open](cosmic-gravity-astra-ultra.html) | Prepared locally |
-| Sol | Ultra | [Open](cosmic-gravity-sol-ultra.html) | Prepared locally |
+| Astra | Extra High | [Open](cosmic-gravity-astra-extra-high.html) | Published |
+| Sol | Extra High | [Open](cosmic-gravity-sol-extra-high.html) | Published |
+| Astra | Ultra | [Open](cosmic-gravity-astra-ultra.html) | Published |
+| Sol | Ultra | [Open](cosmic-gravity-sol-ultra.html) | Published |
 
 <!-- RESULTS:END -->
 

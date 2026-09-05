@@ -123,7 +123,7 @@
           "path": "HTML - Space/cosmic-gravity-astra-extra-high.html",
           "type": "html",
           "sha256": "1a890ee701500ccfb0f24bd0b445fdbd3aa1b86c4b571209275adcd5ff5cc79a",
-          "publication": "local",
+          "publication": "published",
           "promptVariant": "labelled",
           "poster": "assets/previews/astra-extra-high.webp",
           "provenance": {
@@ -140,7 +140,7 @@
           "path": "HTML - Space/cosmic-gravity-sol-extra-high.html",
           "type": "html",
           "sha256": "a8a09797f7906681901d24038b6fa3e57791b85220f831e8b58864525df2e89e",
-          "publication": "local",
+          "publication": "published",
           "promptVariant": "labelled",
           "poster": "assets/previews/sol-extra-high.webp",
           "provenance": {
@@ -157,7 +157,7 @@
           "path": "HTML - Space/cosmic-gravity-astra-ultra.html",
           "type": "html",
           "sha256": "f5375bcd428543adaf91daca156c417f5904e392736d0f308f097ef67edbb9a7",
-          "publication": "local",
+          "publication": "published",
           "promptVariant": "labelled",
           "poster": "assets/previews/astra-ultra.webp",
           "provenance": {
@@ -174,7 +174,7 @@
           "path": "HTML - Space/cosmic-gravity-sol-ultra.html",
           "type": "html",
           "sha256": "fc6393d940d0fab45f1d3c9ae2eaf04cab5e43651b09fc33b50b9c5f719703aa",
-          "publication": "local",
+          "publication": "published",
           "promptVariant": "labelled",
           "poster": "assets/previews/sol-ultra.webp",
           "provenance": {

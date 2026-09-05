@@ -20,14 +20,14 @@ The task: create an interactive gravity simulation inside one self-contained HTM
 | Sol | Medium | [Open](HTML%20-%20Space/cosmic-gravity-playground-sol-medium.html) | Published |
 | Astra | High | [Open](HTML%20-%20Space/cosmic-gravity-astra-high.html) | Published |
 | Sol | High | [Open](HTML%20-%20Space/cosmic-gravity-sol-high.html) | Published |
-| Astra | Extra High | [Open](HTML%20-%20Space/cosmic-gravity-astra-extra-high.html) | Prepared locally |
-| Sol | Extra High | [Open](HTML%20-%20Space/cosmic-gravity-sol-extra-high.html) | Prepared locally |
-| Astra | Ultra | [Open](HTML%20-%20Space/cosmic-gravity-astra-ultra.html) | Prepared locally |
-| Sol | Ultra | [Open](HTML%20-%20Space/cosmic-gravity-sol-ultra.html) | Prepared locally |
+| Astra | Extra High | [Open](HTML%20-%20Space/cosmic-gravity-astra-extra-high.html) | Published |
+| Sol | Extra High | [Open](HTML%20-%20Space/cosmic-gravity-sol-extra-high.html) | Published |
+| Astra | Ultra | [Open](HTML%20-%20Space/cosmic-gravity-astra-ultra.html) | Published |
+| Sol | Ultra | [Open](HTML%20-%20Space/cosmic-gravity-sol-ultra.html) | Published |
 
 <!-- RESULTS:END -->
 
-Publication status is recorded in [the catalogue](catalogue.json). On 5 September 2026, six outputs are published and four are prepared locally. The redesigned site and publication pack are awaiting review. Local availability does not imply publication.
+Publication status is recorded in [the catalogue](catalogue.json). All ten outputs and the redesigned site were published and verified on 5 September 2026. The complete media pack remains local; only website previews and social metadata assets are included in the site.
 
 ## What the comparison means
 
